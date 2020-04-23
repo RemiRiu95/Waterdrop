@@ -1,4 +1,4 @@
-From e3b22222903b9233b240f91376936c9b8d1c1e67 Mon Sep 17 00:00:00 2001
+From db82b2f3ec1c5ca1afc69557933ad6a0e5358168 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -880,7 +880,7 @@ index 00000000..1f1393a4
 +}
 diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
 new file mode 100644
-index 00000000..35ca7020
+index 00000000..4f67df05
 --- /dev/null
 +++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
 @@ -0,0 +1,45 @@
@@ -897,7 +897,7 @@ index 00000000..35ca7020
 +public class CommandLogin extends Command {
 +
 +    public CommandLogin() {
-+        super("login", "waterdrop.commands.login");
++        super("login", "waterdrop.commands.login", "l");
 +    }
 +
 +    @Override
