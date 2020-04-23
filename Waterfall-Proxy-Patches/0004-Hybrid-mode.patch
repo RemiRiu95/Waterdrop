@@ -1,4 +1,4 @@
-From db82b2f3ec1c5ca1afc69557933ad6a0e5358168 Mon Sep 17 00:00:00 2001
+From b47e8d4eb8b25f4b228235d1f945ed76fa99eecc Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -22,13 +22,15 @@ index 00000000..b0daff95
 +}
 diff --git a/api/src/main/java/fr/thekinrar/waterdrop/HybridProfile.java b/api/src/main/java/fr/thekinrar/waterdrop/HybridProfile.java
 new file mode 100644
-index 00000000..0eb1b41c
+index 00000000..dc87ea95
 --- /dev/null
 +++ b/api/src/main/java/fr/thekinrar/waterdrop/HybridProfile.java
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,19 @@
 +package fr.thekinrar.waterdrop;
 +
 +public interface HybridProfile {
++
++    boolean sendUnauthenticatedMessage();
 +
 +    /**
 +     * Skips authentication for this player.
@@ -116,6 +118,53 @@ index f7459860..d352613e 100644
 +
 +    boolean isAuthenticated();
  }
+diff --git a/api/src/main/java/net/md_5/bungee/api/plugin/Command.java b/api/src/main/java/net/md_5/bungee/api/plugin/Command.java
+index eba3040a..090f3263 100644
+--- a/api/src/main/java/net/md_5/bungee/api/plugin/Command.java
++++ b/api/src/main/java/net/md_5/bungee/api/plugin/Command.java
+@@ -17,6 +17,7 @@ public abstract class Command
+     private final String name;
+     private final String permission;
+     private final String[] aliases;
++    private final boolean unauthenticated; // Waterdrop
+ 
+     /**
+      * Construct a new command with no permissions or aliases.
+@@ -38,9 +39,14 @@ public abstract class Command
+      */
+     public Command(String name, String permission, String... aliases)
+     {
++        this(name, permission, false, aliases);
++    }
++
++    public Command(String name, String permission, boolean unauthenticated, String... aliases) {
+         Preconditions.checkArgument( name != null, "name" );
+         this.name = name;
+         this.permission = permission;
++        this.unauthenticated = unauthenticated;
+         this.aliases = aliases;
+     }
+ 
+diff --git a/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java b/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
+index 70d3736b..c0fb531e 100644
+--- a/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
++++ b/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
+@@ -165,7 +165,14 @@ public final class PluginManager
+         Command command = getCommandIfEnabled( split[0], sender );
+         if ( command == null )
+         {
+-            return false;
++            if(sender instanceof ProxiedPlayer && !((ProxiedPlayer) sender).isAuthenticated()) {
++                ((ProxiedPlayer) sender).getHybridProfile().sendUnauthenticatedMessage();
++                return true;
++            } else {
++                return false;
++            }
++        } else if(sender instanceof ProxiedPlayer && !((ProxiedPlayer) sender).isAuthenticated() && !command.isUnauthenticated()) {
++            return true;
+         }
+ 
+         if ( !command.hasPermission( sender ) )
 diff --git a/proxy/pom.xml b/proxy/pom.xml
 index 8d45791e..bef42727 100644
 --- a/proxy/pom.xml
@@ -561,10 +610,10 @@ index 00000000..ce031f45
 +}
 diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
 new file mode 100644
-index 00000000..1f1393a4
+index 00000000..bf160720
 --- /dev/null
 +++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,314 @@
 +package fr.thekinrar.waterdrop.hybrid;
 +
 +import fr.thekinrar.waterdrop.HybridProfile;
@@ -769,6 +818,7 @@ index 00000000..1f1393a4
 +            Thread.sleep(10000);
 +    }
 +
++    @Override
 +    public boolean sendUnauthenticatedMessage() {
 +        if(loginRequested) {
 +            user.sendMessage("§eBienvenue ! §e§lConnecte-toi en utilisant /login <motDePasse>");
@@ -878,9 +928,70 @@ index 00000000..1f1393a4
 +        return Arrays.equals(Arrays.copyOfRange(hash, 17, 49), vHash);
 +    }
 +}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandChangePass.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandChangePass.java
+new file mode 100644
+index 00000000..94fd2ad6
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandChangePass.java
+@@ -0,0 +1,55 @@
++package fr.thekinrar.waterdrop.hybrid.commands;
++
++import fr.thekinrar.waterdrop.hybrid.WaterHybridProfile;
++import net.md_5.bungee.BungeeCord;
++import net.md_5.bungee.UserConnection;
++import net.md_5.bungee.api.ChatColor;
++import net.md_5.bungee.api.CommandSender;
++import net.md_5.bungee.api.chat.ComponentBuilder;
++import net.md_5.bungee.api.plugin.Command;
++
++public class CommandChangePass extends Command {
++
++    public CommandChangePass() {
++        super("changepass", "waterdrop.commands.changepass");
++    }
++
++    @Override
++    public void execute(CommandSender sender, String[] args) {
++        if(BungeeCord.getInstance().getConfig().isHybridMode() && sender instanceof UserConnection) {
++            if(args.length != 3) {
++                sender.sendMessage(new ComponentBuilder("Usage: /changepass <current password> <new password> <new password>").color(ChatColor.RED).create());
++                return;
++            }
++
++            WaterHybridProfile profile = ((UserConnection) sender).getHybridProfile();
++
++            if(!profile.isRegistered()) {
++                profile.sendUnauthenticatedMessage();
++                return;
++            }
++
++            if(!profile.isLoggedIn()) {
++                profile.sendUnauthenticatedMessage();
++                return;
++            }
++
++            if(!profile.verifyPassword(args[0])) {
++                sender.sendMessage(new ComponentBuilder("Invalid password.").color(ChatColor.RED).create());
++                return;
++            }
++
++            if(!args[1].equals(args[2])) {
++                sender.sendMessage(new ComponentBuilder("Passwords do not match.").color(ChatColor.RED).create());
++                return;
++            }
++
++            // No hard feelings please, args[2] will not be forgotten.
++            profile.setPassword(args[1]);
++
++            sender.sendMessage(new ComponentBuilder("Password changed.").color(ChatColor.GREEN).create());
++        } else {
++            sender.sendMessage(new ComponentBuilder("Command unavailable.").color(ChatColor.RED).create());
++        }
++    }
++}
 diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
 new file mode 100644
-index 00000000..4f67df05
+index 00000000..948eef08
 --- /dev/null
 +++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
 @@ -0,0 +1,45 @@
@@ -897,7 +1008,7 @@ index 00000000..4f67df05
 +public class CommandLogin extends Command {
 +
 +    public CommandLogin() {
-+        super("login", "waterdrop.commands.login", "l");
++        super("login", "waterdrop.commands.login", true, "l");
 +    }
 +
 +    @Override
@@ -931,7 +1042,7 @@ index 00000000..4f67df05
 +}
 diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java
 new file mode 100644
-index 00000000..13994a47
+index 00000000..3b04b682
 --- /dev/null
 +++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java
 @@ -0,0 +1,44 @@
@@ -948,7 +1059,7 @@ index 00000000..13994a47
 +public class CommandRegister extends Command {
 +
 +    public CommandRegister() {
-+        super("register", "waterdrop.commands.register");
++        super("register", "waterdrop.commands.register", true);
 +    }
 +
 +    @Override
@@ -1044,20 +1155,21 @@ index e860214f..6fd02f3f 100644
 +    }
  }
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-index af001288..49b2dbfa 100644
+index af001288..4bdcbc29 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-@@ -10,6 +10,9 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
+@@ -10,6 +10,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  import com.google.gson.Gson;
  import com.google.gson.GsonBuilder;
  import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 +import fr.thekinrar.waterdrop.hybrid.WaterHybridEngine;
++import fr.thekinrar.waterdrop.hybrid.commands.CommandChangePass;
 +import fr.thekinrar.waterdrop.hybrid.commands.CommandLogin;
 +import fr.thekinrar.waterdrop.hybrid.commands.CommandRegister;
  import io.github.waterfallmc.waterfall.conf.WaterfallConfiguration;
  import io.netty.bootstrap.ServerBootstrap;
  import io.netty.channel.Channel;
-@@ -22,9 +25,10 @@ import io.netty.util.ResourceLeakDetector;
+@@ -22,9 +26,10 @@ import io.netty.util.ResourceLeakDetector;
  import java.io.File;
  import java.io.FileReader;
  import java.io.IOException;
@@ -1069,7 +1181,7 @@ index af001288..49b2dbfa 100644
  import java.text.MessageFormat;
  import java.util.ArrayList;
  import java.util.Collection;
-@@ -173,9 +177,16 @@ public class BungeeCord extends ProxyServer
+@@ -173,9 +178,16 @@ public class BungeeCord extends ProxyServer
      private ConnectionThrottle connectionThrottle;
      private final ModuleManager moduleManager = new ModuleManager();
  
@@ -1086,16 +1198,19 @@ index af001288..49b2dbfa 100644
      }
  
      public static BungeeCord getInstance()
-@@ -228,6 +239,8 @@ public class BungeeCord extends ProxyServer
+@@ -228,6 +240,11 @@ public class BungeeCord extends ProxyServer
          getPluginManager().registerCommand( null, new CommandIP() );
          getPluginManager().registerCommand( null, new CommandBungee() );
          getPluginManager().registerCommand( null, new CommandPerms() );
++        // Waterdrop start
 +        getPluginManager().registerCommand( null, new CommandLogin() );
 +        getPluginManager().registerCommand( null, new CommandRegister() );
++        getPluginManager().registerCommand( null, new CommandChangePass() );
++        // Waterdrop end
  
          if ( !Boolean.getBoolean( "net.md_5.bungee.native.disable" ) )
          {
-@@ -283,6 +296,17 @@ public class BungeeCord extends ProxyServer
+@@ -283,6 +300,17 @@ public class BungeeCord extends ProxyServer
              registerChannel( ForgeConstants.FORGE_REGISTER );
          }
  
@@ -1113,7 +1228,7 @@ index af001288..49b2dbfa 100644
          isRunning = true;
  
          pluginManager.enablePlugins();
-@@ -482,6 +506,9 @@ public class BungeeCord extends ProxyServer
+@@ -482,6 +510,9 @@ public class BungeeCord extends ProxyServer
              plugin.getExecutorService().shutdownNow();
          }
  
@@ -1382,18 +1497,10 @@ index 007d3daf..03523bf0 100644
      }
  
 diff --git a/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java b/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
-index 4d8bac5d..9447e6a5 100644
+index 4d8bac5d..c33dd87c 100644
 --- a/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
 +++ b/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
-@@ -149,6 +149,7 @@ public class UpstreamBridge extends PacketHandler
-         if ( !bungee.getPluginManager().callEvent( chatEvent ).isCancelled() )
-         {
-             chat.setMessage( chatEvent.getMessage() );
-+            // TODO HYBRID
-             if ( !chatEvent.isCommand() || !bungee.getPluginManager().dispatchCommand( con, chat.getMessage().substring( 1 ) ) )
-             {
-                 con.getServer().unsafe().sendPacket( chat );
-@@ -232,6 +233,11 @@ public class UpstreamBridge extends PacketHandler
+@@ -232,6 +232,11 @@ public class UpstreamBridge extends PacketHandler
              throw CancelSendSignal.INSTANCE;
          }
  
