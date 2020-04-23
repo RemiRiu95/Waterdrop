@@ -1,0 +1,27 @@
+From 3ed01849a3c000e4f46b4b094c2811e0af0dab71 Mon Sep 17 00:00:00 2001
+From: Indhi Rousseau <contact@thekinrar.fr>
+Date: Thu, 23 Apr 2020 03:40:52 +0200
+Subject: [PATCH] Don't sleep for 10 seconds when build is "outdated"
+
+
+diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
+index d565557f..f6e6c724 100644
+--- a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
++++ b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
+@@ -51,8 +51,11 @@ public class BungeeCordLauncher
+                 System.err.println( "*** Hey! This build is potentially outdated :( ***" );
+                 System.err.println( "*** Please check for a new build from https://papermc.io/ci/job/Waterfall/ ***" );
+                 System.err.println( "*** Should this build be outdated, you will get NO support for it. ***" );
+-                System.err.println( "*** Server will start in 10 seconds ***" );
+-                Thread.sleep( TimeUnit.SECONDS.toMillis( 10 ) );
++                // Waterdrop start
++                // Doing like PaperMC did in Paper ; waiting 10 seconds is not that useful and very annoying
++                // System.err.println( "*** Server will start in 10 seconds ***" );
++                // Thread.sleep( TimeUnit.SECONDS.toMillis( 10 ) );
++                // Waterdrop end
+             }
+         }
+ 
+-- 
+2.26.1
+

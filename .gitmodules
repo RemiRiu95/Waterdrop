@@ -1,0 +1,6 @@
+[submodule "work/BungeeCord"]
+	path = work/BungeeCord
+	url = https://github.com/SpigotMC/BungeeCord.git
+[submodule "work/Waterfall"]
+	path = work/Waterfall
+	url = https://github.com/PaperMC/Waterfall.git

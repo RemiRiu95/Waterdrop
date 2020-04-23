@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# get base dir regardless of execution location
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SOURCE=$([[ "$SOURCE" = /* ]] && echo "$SOURCE" || echo "$PWD/${SOURCE#./}")
+basedir=$(dirname "$SOURCE")
+
+cd "$basedir" || exit 1
+
+case "$1" in
+    "rb" | "rbp" | "rebuild")
+        scripts/rebuildPatches.sh
+    ;;
+    "p" | "patch")
+        scripts/build.sh
+    ;;
+    "m" | "up" | "merge")
+        scripts/mergeUpstream.sh
+    ;;
+    "b" | "build")
+        scripts/build.sh --jar
+    ;;
+    "e" | "edit")
+        scripts/edit.sh
+    ;;
+    *)
+        echo "Waterdrop build tool command. This provides a variety of commands to control the Waterdrop"
+        echo "build. View below for details of the available commands."
+        echo ""
+        echo "Commands:"
+        echo "  * rb, rbp, rebuild | Rebuilds the patches"
+        echo "  * p, patch         | Applies all the patches to BungeeCord"
+        echo "  * m, up, merge     | Utility to aid in merging upstream"
+        echo "  * b, build         | Builds the project"
+        echo "                     | The bootstrap artifact can be found in Waterdrop-Proxy/bootstrap/target/"
+        echo "  * e, edit          | Runs git rebase -i for Waterdrop, allowing patches to be easily modified"
+    ;;
+esac

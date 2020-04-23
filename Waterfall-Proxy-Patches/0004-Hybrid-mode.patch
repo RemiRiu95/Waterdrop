@@ -1,0 +1,1472 @@
+From e3b22222903b9233b240f91376936c9b8d1c1e67 Mon Sep 17 00:00:00 2001
+From: Indhi Rousseau <contact@thekinrar.fr>
+Date: Thu, 23 Apr 2020 03:05:46 +0200
+Subject: [PATCH] Hybrid mode
+
+
+diff --git a/api/src/main/java/fr/thekinrar/waterdrop/HybridEngine.java b/api/src/main/java/fr/thekinrar/waterdrop/HybridEngine.java
+new file mode 100644
+index 00000000..b0daff95
+--- /dev/null
++++ b/api/src/main/java/fr/thekinrar/waterdrop/HybridEngine.java
+@@ -0,0 +1,10 @@
++package fr.thekinrar.waterdrop;
++
++import java.util.UUID;
++
++public interface HybridEngine {
++
++    void registerPasswordProvider(PasswordProvider provider);
++
++    boolean addAltName(String alt, UUID id);
++}
+diff --git a/api/src/main/java/fr/thekinrar/waterdrop/HybridProfile.java b/api/src/main/java/fr/thekinrar/waterdrop/HybridProfile.java
+new file mode 100644
+index 00000000..0eb1b41c
+--- /dev/null
++++ b/api/src/main/java/fr/thekinrar/waterdrop/HybridProfile.java
+@@ -0,0 +1,17 @@
++package fr.thekinrar.waterdrop;
++
++public interface HybridProfile {
++
++    /**
++     * Skips authentication for this player.
++     * This requires the player to have set a password before
++     * and be in the login request stage.
++     * This will not save the player's current online ID as if they used /login.
++     * @return whether authentication was successfully skipped
++     */
++    boolean forceLogin();
++
++    void setPassword(String password);
++
++    void delete(String reason);
++}
+diff --git a/api/src/main/java/fr/thekinrar/waterdrop/PasswordProvider.java b/api/src/main/java/fr/thekinrar/waterdrop/PasswordProvider.java
+new file mode 100644
+index 00000000..ee4b9441
+--- /dev/null
++++ b/api/src/main/java/fr/thekinrar/waterdrop/PasswordProvider.java
+@@ -0,0 +1,8 @@
++package fr.thekinrar.waterdrop;
++
++public interface PasswordProvider {
++
++    boolean hasPassword(String username);
++
++    boolean verifyPassword(String username, String password);
++}
+diff --git a/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java b/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
+index 4a198ee9..ef66d11a 100644
+--- a/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
++++ b/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
+@@ -255,4 +255,12 @@ public interface ProxyConfig
+      * @return Should we disable entity metadata rewriting?
+      */
+     boolean isDisableEntityMetadataRewrite();
++
++    String getDatabaseUrl();
++
++    String getDatabaseUsername();
++
++    String getDatabasePassword();
++
++    boolean isHybridMode();
+ }
+diff --git a/api/src/main/java/net/md_5/bungee/api/ProxyServer.java b/api/src/main/java/net/md_5/bungee/api/ProxyServer.java
+index a4011335..4fda8f97 100644
+--- a/api/src/main/java/net/md_5/bungee/api/ProxyServer.java
++++ b/api/src/main/java/net/md_5/bungee/api/ProxyServer.java
+@@ -8,6 +8,8 @@ import java.util.Collection;
+ import java.util.Map;
+ import java.util.UUID;
+ import java.util.logging.Logger;
++
++import fr.thekinrar.waterdrop.HybridEngine;
+ import lombok.Getter;
+ import net.md_5.bungee.api.chat.BaseComponent;
+ import net.md_5.bungee.api.config.ConfigurationAdapter;
+@@ -327,4 +329,6 @@ public abstract class ProxyServer
+      */
+     public abstract Title createTitle();
+ 
++    public abstract HybridEngine getHybridEngine();
++
+ }
+diff --git a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
+index f7459860..d352613e 100644
+--- a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
++++ b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
+@@ -3,6 +3,8 @@ package net.md_5.bungee.api.connection;
+ import java.util.Locale;
+ import java.util.Map;
+ import java.util.UUID;
++
++import fr.thekinrar.waterdrop.HybridProfile;
+ import net.md_5.bungee.api.Callback;
+ import net.md_5.bungee.api.ChatMessageType;
+ import net.md_5.bungee.api.CommandSender;
+@@ -372,4 +374,8 @@ public interface ProxiedPlayer extends Connection, CommandSender
+      * @return this player's {@link Scoreboard}
+      */
+     Scoreboard getScoreboard();
++
++    HybridProfile getHybridProfile();
++
++    boolean isAuthenticated();
+ }
+diff --git a/proxy/pom.xml b/proxy/pom.xml
+index 8d45791e..bef42727 100644
+--- a/proxy/pom.xml
++++ b/proxy/pom.xml
+@@ -118,6 +118,20 @@
+             <scope>runtime</scope>
+         </dependency>
+         <!-- Waterfall end -->
++
++        <dependency>
++            <groupId>org.postgresql</groupId>
++            <artifactId>postgresql</artifactId>
++            <version>42.2.12</version>
++            <scope>compile</scope>
++        </dependency>
++
++        <dependency>
++            <groupId>commons-codec</groupId>
++            <artifactId>commons-codec</artifactId>
++            <version>1.14</version>
++            <scope>compile</scope>
++        </dependency>
+     </dependencies>
+ 
+     <build>
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/AutoLoginReason.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/AutoLoginReason.java
+new file mode 100644
+index 00000000..770682a6
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/AutoLoginReason.java
+@@ -0,0 +1,21 @@
++package fr.thekinrar.waterdrop.hybrid;
++
++public enum AutoLoginReason {
++    EXPIRATION("stayed logged in"),
++    ONLINE("known online ID");
++
++    private String message;
++
++    AutoLoginReason(String message) {
++        this.message = message;
++    }
++
++    @Override
++    public String toString() {
++        return message;
++    }
++
++    public String getMessage() {
++        return message; // TODO HYBRID PapyrusConfig.hybridAutoLoginMessages.get(this);
++    }
++}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/ClientIdentifier.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/ClientIdentifier.java
+new file mode 100644
+index 00000000..ef377da6
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/ClientIdentifier.java
+@@ -0,0 +1,30 @@
++package fr.thekinrar.waterdrop.hybrid;
++
++import lombok.Getter;
++import lombok.RequiredArgsConstructor;
++
++import java.util.Objects;
++
++@RequiredArgsConstructor
++public class ClientIdentifier {
++
++    @Getter
++    private final String host;
++
++    @Getter
++    private final String username;
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++        ClientIdentifier that = (ClientIdentifier) o;
++        return host.equals(that.host) &&
++                username.equals(that.username);
++    }
++
++    @Override
++    public int hashCode() {
++        return Objects.hash(host, username);
++    }
++}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/LegacyData.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/LegacyData.java
+new file mode 100644
+index 00000000..5bcdf558
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/LegacyData.java
+@@ -0,0 +1,69 @@
++package fr.thekinrar.waterdrop.hybrid;
++
++import lombok.RequiredArgsConstructor;
++import lombok.Setter;
++import net.md_5.bungee.BungeeCord;
++
++import java.sql.PreparedStatement;
++import java.sql.SQLException;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++
++class LegacyData {
++
++    private Map<UUID, LegacyProfile> profiles = new HashMap<>();
++
++    LegacyProfile getProfile(UUID id) {
++        return profiles.computeIfAbsent(id, LegacyProfile::new);
++    }
++
++    void insert() throws SQLException {
++        try (
++                PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                        .prepareStatement("INSERT INTO hybrid_profiles (id, name, online_id, password) VALUES (?, ?, ?, ?)");
++                PreparedStatement psAlt = BungeeCord.getInstance().getConnection()
++                        .prepareStatement("INSERT INTO hybrid_alt_names (low_name, id) VALUES (?, ?)");
++        ) {
++            for(LegacyProfile profile : profiles.values()) {
++                ps.setObject(1, profile.id);
++                ps.setString(2, profile.name);
++                ps.setObject(3, profile.onlineId);
++                ps.setBytes(4, profile.password);
++                ps.addBatch();
++
++                for(String alt : profile.alts) {
++                    psAlt.setString(1, alt.toLowerCase());
++                    psAlt.setObject(2, profile.id);
++                    psAlt.addBatch();
++                }
++            }
++
++            ps.executeBatch();
++            psAlt.executeBatch();
++        }
++    }
++
++    @RequiredArgsConstructor
++    static class LegacyProfile {
++
++        private final UUID id;
++
++        @Setter
++        private String name;
++
++        @Setter
++        private byte[] password = null;
++
++        @Setter
++        private UUID onlineId = null;
++
++        private List<String> alts = new ArrayList<>();
++
++        void addAlt(String alt) {
++            alts.add(alt);
++        }
++    }
++}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/OnlineProfile.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/OnlineProfile.java
+new file mode 100644
+index 00000000..73a02229
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/OnlineProfile.java
+@@ -0,0 +1,16 @@
++package fr.thekinrar.waterdrop.hybrid;
++
++import lombok.AllArgsConstructor;
++import lombok.Getter;
++
++import java.util.UUID;
++
++@AllArgsConstructor
++public class OnlineProfile {
++
++    @Getter
++    private final UUID id;
++
++    @Getter
++    private final String name;
++}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridEngine.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridEngine.java
+new file mode 100644
+index 00000000..ce031f45
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridEngine.java
+@@ -0,0 +1,252 @@
++package fr.thekinrar.waterdrop.hybrid;
++
++import com.flowpowered.nbt.ByteArrayTag;
++import com.flowpowered.nbt.CompoundMap;
++import com.flowpowered.nbt.CompoundTag;
++import com.flowpowered.nbt.ListTag;
++import com.flowpowered.nbt.LongTag;
++import com.flowpowered.nbt.stream.NBTInputStream;
++import fr.thekinrar.waterdrop.HybridEngine;
++import fr.thekinrar.waterdrop.PasswordProvider;
++import lombok.Getter;
++import net.md_5.bungee.BungeeCord;
++
++import java.io.File;
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.nio.charset.StandardCharsets;
++import java.security.SecureRandom;
++import java.sql.PreparedStatement;
++import java.sql.ResultSet;
++import java.sql.SQLException;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++import java.util.logging.Logger;
++
++public class WaterHybridEngine implements HybridEngine {
++
++    @Getter
++    private SecureRandom random = new SecureRandom();
++
++    private List<PasswordProvider> passwordProviders = new ArrayList<>();
++
++    private Map<ClientIdentifier, Long> invalidSessions = new HashMap<>();
++
++    public Logger getLogger() {
++        return BungeeCord.getInstance().getLogger();
++    }
++
++    /**
++     * Remember this client as having an invalid session.
++     * @param identifier The client with an invalid session
++     */
++    public void setInvalidSession(ClientIdentifier identifier) {
++        invalidSessions.put(identifier, System.currentTimeMillis() + 15000);
++    }
++
++    /**
++     * Returns whether this client had an invalid session
++     * @param identifier The client to check
++     * @return whether the client had an invalid session
++     */
++    public boolean hasInvalidSession(ClientIdentifier identifier) {
++        Long exp = invalidSessions.get(identifier);
++
++        if(exp != null) {
++            if(System.currentTimeMillis() < exp) {
++                return true;
++            } else {
++                invalidSessions.remove(identifier);
++            }
++        }
++
++        return false;
++    }
++
++    @Override
++    public void registerPasswordProvider(PasswordProvider provider) {
++        passwordProviders.add(provider);
++    }
++
++    public PasswordProvider findPasswordProvider(WaterHybridProfile profile) {
++        return passwordProviders.stream()
++                .filter(provider -> provider.hasPassword(profile.getName()))
++                .findAny().orElse(null);
++    }
++
++    /**
++     * Returns the hybrid profile for an online player
++     * @param profile The online profile for this player
++     * @return Hybrid profile for this online player
++     */
++    public WaterHybridProfile getOnlinePlayerProfile(OnlineProfile profile) {
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("SELECT id FROM hybrid_profiles WHERE online_id=?")) {
++            ps.setObject(1, profile.getId());
++            try (ResultSet rs = ps.executeQuery()) {
++                if(rs.next()) {
++                    return new WaterHybridProfile((UUID) rs.getObject("id"));
++                }
++            }
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++
++        return getOfflinePlayerProfile(profile.getName());
++    }
++
++    /**
++     * Returns the hybrid profile for an offline player
++     * @param name The player's name
++     * @return Hybrid profile for this offline player
++     */
++    public WaterHybridProfile getOfflinePlayerProfile(String name) {
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("SELECT id FROM hybrid_profiles WHERE lower(name)=lower(?)")) {
++            ps.setString(1, name);
++            try (ResultSet rs = ps.executeQuery()) {
++                if(rs.next()) {
++                    return new WaterHybridProfile((UUID) rs.getObject("id"));
++                }
++            }
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++
++        // Do we have an alt name?
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("SELECT id FROM hybrid_alt_names WHERE low_name=?")) {
++            ps.setString(1, name.toLowerCase());
++            try (ResultSet rs = ps.executeQuery()) {
++                if(rs.next()) {
++                    return new WaterHybridProfile((UUID) rs.getObject("id"));
++                }
++            }
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++
++        // New player
++        UUID id = getOfflineUUID(name);
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("INSERT INTO hybrid_profiles (id, name) VALUES (?, ?)")) {
++            ps.setObject(1, id);
++            ps.setString(2, name);
++            ps.executeUpdate();
++
++            return new WaterHybridProfile(id);
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    public boolean addAltName(String alt, UUID id) {
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("SELECT id FROM hybrid_profiles WHERE lower(name)=lower(?)")) {
++            ps.setString(1, alt);
++            try (ResultSet rs = ps.executeQuery()) {
++                if(rs.next()) {
++                    getLogger().warning("Tried creating an alt name with an existing account's name!");
++                    return false; // Can't use an existing account name as alt name
++                }
++            }
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("SELECT id FROM hybrid_alt_names WHERE low_name=?")) {
++            ps.setString(1, alt.toLowerCase());
++            try (ResultSet rs = ps.executeQuery()) {
++                if(rs.next()) {
++                    getLogger().warning("Tried creating an alt name but it already exists!");
++                    return false; // Alt name already used
++                }
++            }
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("SELECT id FROM hybrid_profiles WHERE id=?")) {
++            ps.setObject(1, id);
++            try (ResultSet rs = ps.executeQuery()) {
++                if (!rs.next()) {
++                    getLogger().warning("Tried creating an alt name but destination account does not exist!");
++                    return false; // Obviously we need an existing account as destination
++                }
++            }
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("INSERT INTO hybrid_alt_names (low_name, id) VALUES (?, ?)")) {
++            ps.setString(1, alt.toLowerCase());
++            ps.setObject(2, id);
++
++            ps.executeUpdate();
++
++            return true;
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    @SuppressWarnings("unchecked")
++    public void importLegacyData(File file) throws IOException, SQLException {
++        LegacyData data = new LegacyData();
++
++        try (NBTInputStream in = new NBTInputStream(new FileInputStream(file), false)) {
++            CompoundTag main = (CompoundTag) in.readTag();
++
++            ListTag<CompoundTag> passwords = (ListTag<CompoundTag>) main.getValue().get("Passwords");
++            for (CompoundTag tag : passwords.getValue()) {
++                CompoundMap map = tag.getValue();
++                UUID id = getUUID(map, "Key");
++                byte[] password = ((ByteArrayTag) map.get("Value")).getValue();
++
++                data.getProfile(id).setPassword(password);
++            }
++
++            ListTag<CompoundTag> onlineIds = (ListTag<CompoundTag>) main.getValue().get("OnlineIds");
++            for (CompoundTag tag : onlineIds.getValue()) {
++                CompoundMap map = tag.getValue();
++                UUID key = getUUID(map, "Key");
++                UUID value = getUUID(map, "Value");
++
++                data.getProfile(key).setOnlineId(value);
++            }
++
++            ListTag<CompoundTag> offlineMapping = (ListTag<CompoundTag>) main.getValue().get("OfflineMapping");
++            for (CompoundTag tag : offlineMapping.getValue()) {
++                CompoundMap map = tag.getValue();
++                String key = (String) map.get("Key").getValue();
++                UUID value = getUUID(map, "Value");
++
++                data.getProfile(value).addAlt(key);
++            }
++
++            ListTag<CompoundTag> knownNames = (ListTag<CompoundTag>) main.getValue().get("KnownNames");
++            for (CompoundTag tag : knownNames.getValue()) {
++                CompoundMap map = tag.getValue();
++                String value = (String) map.get("Value").getValue();
++
++                data.getProfile(getOfflineUUID(value)).setName(value);
++            }
++        }
++
++        data.insert();
++    }
++
++    private UUID getOfflineUUID(String name) {
++        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
++    }
++
++    private UUID getUUID(CompoundMap map, String key) {
++        return new UUID(((LongTag) map.get(key + "Most")).getValue(), ((LongTag) map.get(key + "Least")).getValue());
++    }
++}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
+new file mode 100644
+index 00000000..1f1393a4
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
+@@ -0,0 +1,313 @@
++package fr.thekinrar.waterdrop.hybrid;
++
++import fr.thekinrar.waterdrop.HybridProfile;
++import fr.thekinrar.waterdrop.PasswordProvider;
++import lombok.Getter;
++import lombok.Setter;
++import lombok.SneakyThrows;
++import net.md_5.bungee.BungeeCord;
++import net.md_5.bungee.UserConnection;
++import org.apache.commons.codec.digest.DigestUtils;
++
++import java.net.InetSocketAddress;
++import java.nio.charset.StandardCharsets;
++import java.security.MessageDigest;
++import java.sql.PreparedStatement;
++import java.sql.ResultSet;
++import java.sql.SQLException;
++import java.util.Arrays;
++import java.util.UUID;
++import java.util.concurrent.TimeUnit;
++
++public class WaterHybridProfile implements HybridProfile, Runnable {
++
++    /* PERSISTENT */
++
++    @Getter
++    private final UUID id;
++    @Getter
++    private String name;
++
++    private UUID onlineId;
++    private byte[] password;
++    private PasswordProvider passwordProvider = null;
++
++    /* TEMPORARY */
++
++    private final WaterHybridEngine engine = BungeeCord.getInstance().getHybridEngine();
++
++    // TODO HYBRID this is in wrong place (lost on logout)
++    private Long authExp = null;
++    private String authExpAddress = null;
++
++    @Getter
++    @Setter
++    private boolean invalidSessionWorkaround;
++
++    @Getter
++    private UserConnection user = null;
++
++    @Getter
++    private AutoLoginReason autoLogin = null;
++
++    private boolean loginRequested;
++    private boolean registrationRequested;
++
++    WaterHybridProfile(UUID id) {
++        this.id = id;
++
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("SELECT * FROM hybrid_profiles WHERE id=?")) {
++            ps.setObject(1, id);
++
++            try (ResultSet rs = ps.executeQuery()) {
++                if(!rs.next())
++                    throw new RuntimeException("profile not found");
++
++                name = rs.getString("name");
++                onlineId = (UUID) rs.getObject("online_id");
++                password = rs.getBytes("password");
++
++                if(!isRegistered()) {
++                    passwordProvider = engine.findPasswordProvider(this);
++
++                    if(passwordProvider != null) {
++                        engine.getLogger().info(() -> String.format("Player %s using password provider %s", name, passwordProvider.getClass().getName()));
++                    }
++                }
++            }
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    private void setName(String name) {
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("UPDATE hybrid_profiles SET name=? WHERE id=?")) {
++            ps.setString(1, name);
++            ps.setObject(2, id);
++            ps.executeUpdate();
++
++            this.name = name;
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    public boolean hasPassword() {
++        return password != null || passwordProvider != null;
++    }
++
++    public boolean isRegistered() {
++        return onlineId != null || hasPassword();
++    }
++
++    public boolean isLoggedIn() {
++        return user != null && user.isAuthenticated();
++    }
++
++    private void setOnlineId(UUID onlineId) {
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("UPDATE hybrid_profiles SET online_id=? WHERE id=?")) {
++            ps.setObject(1, onlineId);
++            ps.setObject(2, id);
++            ps.executeUpdate();
++
++            this.onlineId = onlineId;
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    public void register(String password) {
++        setPassword(password);
++
++        registrationRequested = false;
++        user.setAuthenticated(true);
++
++        engine.getLogger().info(user.getName() + " registered");
++    }
++
++    public void setPassword(String password) {
++        byte[] hash = hashPassword(password);
++
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("UPDATE hybrid_profiles SET password=? WHERE id=?")) {
++            ps.setBytes(1, hash);
++            ps.setObject(2, id);
++            ps.executeUpdate();
++
++            this.password = hash;
++            this.passwordProvider = null;
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    public void authenticate(UserConnection user, InetSocketAddress address) {
++        this.user = user;
++        this.user.setHybridProfile(this);
++
++        if(!user.getName().equals(name))
++            setName(user.getName());
++
++        if(authExp != null && authExp >= System.currentTimeMillis()
++                && address.getHostString().equals(authExpAddress)) {
++            autoLogin = AutoLoginReason.EXPIRATION;
++        } else if(isRegistered()) {
++            // Account already registered - either via online id or password
++            if(onlineId != null) {
++                // Account has an online id
++                if(user.isOnline()) {
++                    // User is online - will require online id match
++                    if(user.getOnlineId().equals(onlineId)) { // Known ID match
++                        autoLogin = AutoLoginReason.ONLINE;
++                    } else {
++                        user.disconnect("authentication failed (bad online id)");
++                        return;
++                    }
++                } else if(!hasPassword()) { // User is not online, will deny login if no password set
++                    user.disconnect("authentication failed (online account without password)");
++                    return;
++                }
++            } // else account only has a password, will proceed with standard login procedure
++        } else if(user.isOnline()) {
++            // Account not registered and user is online, it's their account now
++            setOnlineId(user.getOnlineId());
++            autoLogin = AutoLoginReason.ONLINE;
++        } // else account not registered, user is offline, will ask for registration
++
++        if(autoLogin == null) {
++            if (hasPassword()) {
++                engine.getLogger().info("Requesting login for " + user.getName());
++                loginRequested = true;
++                registrationRequested = false;
++            } else {
++                engine.getLogger().info("Requesting registration for " + user.getName());
++                registrationRequested = true;
++                loginRequested = false;
++            }
++
++            BungeeCord.getInstance().getScheduler().internal(this, 1, 0, TimeUnit.SECONDS);
++        } else {
++            engine.getLogger().info("Skipping login for " + user.getName() + " (" + autoLogin + ")");
++            user.setAuthenticated(true);
++        }
++    }
++
++    @SneakyThrows
++    @Override
++    public void run() {
++        while(sendUnauthenticatedMessage())
++            Thread.sleep(10000);
++    }
++
++    public boolean sendUnauthenticatedMessage() {
++        if(loginRequested) {
++            user.sendMessage("§eBienvenue ! §e§lConnecte-toi en utilisant /login <motDePasse>");
++        } else if(registrationRequested) {
++            user.sendMessage("§eBienvenue ! §e§lEnregistre-toi en utilisant /register <motDePasse> <motDePasse>.");
++        } else {
++            return false;
++        }
++
++        return true;
++    }
++
++    public boolean login(String password) {
++        if(verifyPassword(password)) {
++            if(user.isOnline()) {
++                if(onlineId != null) { // Safety check. authenticate() should already prevent this.
++                    user.disconnect("authentication failed (bad online id on /login)");
++                    return false;
++                }
++
++                // Player will be able to auto-login next time
++                setOnlineId(user.getOnlineId());
++            }
++
++            loginRequested = false;
++            user.setAuthenticated(true);
++
++            engine.getLogger().info(user.getName() + " logged in");
++
++            return true;
++        }
++
++        return false;
++    }
++
++    @Override
++    public boolean forceLogin() {
++        if(!loginRequested)
++            return false;
++
++        loginRequested = false;
++        user.setAuthenticated(true);
++
++        engine.getLogger().info(user.getName() + " force-logged in");
++
++        return true;
++    }
++
++    @Override
++    public void delete(String reason) {
++        getUser().disconnect(reason);
++
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("DELETE FROM hybrid_alt_names WHERE id=?")) {
++            ps.setObject(1, id);
++
++            ps.executeUpdate();
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++
++        try (PreparedStatement ps = BungeeCord.getInstance().getConnection()
++                .prepareStatement("DELETE FROM hybrid_profiles WHERE id=?")) {
++            ps.setObject(1, id);
++
++            ps.executeUpdate();
++        } catch (SQLException e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    private byte[] hashPassword(String password) {
++        MessageDigest digest = DigestUtils.getSha256Digest();
++
++        byte[] salt = new byte[16];
++        engine.getRandom().nextBytes(salt);
++        digest.update(salt);
++
++        byte[] hash = new byte[49];
++        hash[0] = 0;
++        System.arraycopy(salt, 0, hash, 1, 16);
++        System.arraycopy(digest.digest(password.getBytes(StandardCharsets.UTF_8)), 0, hash, 17, 32);
++
++        return hash;
++    }
++
++    public boolean verifyPassword(String password) {
++        byte[] hash = this.password;
++
++        if(hash == null) {
++            if(passwordProvider.verifyPassword(name, password)) {
++                setPassword(password);
++                engine.getLogger().info(() -> String.format("Player %s logged in using password provider. Password has been saved.", name));
++                return true;
++            }
++
++            return false;
++        }
++
++        if(hash[0] != 0)
++            return false;
++
++        MessageDigest digest = DigestUtils.getSha256Digest();
++        digest.update(Arrays.copyOfRange(hash, 1, 17));
++        byte[] vHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
++
++        return Arrays.equals(Arrays.copyOfRange(hash, 17, 49), vHash);
++    }
++}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
+new file mode 100644
+index 00000000..35ca7020
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
+@@ -0,0 +1,45 @@
++package fr.thekinrar.waterdrop.hybrid.commands;
++
++import fr.thekinrar.waterdrop.hybrid.WaterHybridProfile;
++import net.md_5.bungee.BungeeCord;
++import net.md_5.bungee.UserConnection;
++import net.md_5.bungee.api.ChatColor;
++import net.md_5.bungee.api.CommandSender;
++import net.md_5.bungee.api.chat.ComponentBuilder;
++import net.md_5.bungee.api.plugin.Command;
++
++public class CommandLogin extends Command {
++
++    public CommandLogin() {
++        super("login", "waterdrop.commands.login");
++    }
++
++    @Override
++    public void execute(CommandSender sender, String[] args) {
++        if(BungeeCord.getInstance().getConfig().isHybridMode() && sender instanceof UserConnection) {
++            if(args.length != 1) {
++                sender.sendMessage(new ComponentBuilder("Usage: /login <password>").color(ChatColor.RED).create());
++                return;
++            }
++
++            WaterHybridProfile profile = ((UserConnection) sender).getHybridProfile();
++
++            if(!profile.isRegistered()) {
++                profile.sendUnauthenticatedMessage();
++                return;
++            }
++
++            if(profile.isLoggedIn()) {
++                sender.sendMessage(new ComponentBuilder("Already logged in.").color(ChatColor.RED).create());
++                return;
++            }
++
++            if(profile.login(args[0]))
++                sender.sendMessage(new ComponentBuilder("Login successful.").color(ChatColor.GREEN).create());
++            else
++                sender.sendMessage(new ComponentBuilder("Invalid password.").color(ChatColor.RED).create());
++        } else {
++            sender.sendMessage(new ComponentBuilder("Command unavailable.").color(ChatColor.RED).create());
++        }
++    }
++}
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java
+new file mode 100644
+index 00000000..13994a47
+--- /dev/null
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java
+@@ -0,0 +1,44 @@
++package fr.thekinrar.waterdrop.hybrid.commands;
++
++import fr.thekinrar.waterdrop.hybrid.WaterHybridProfile;
++import net.md_5.bungee.BungeeCord;
++import net.md_5.bungee.UserConnection;
++import net.md_5.bungee.api.ChatColor;
++import net.md_5.bungee.api.CommandSender;
++import net.md_5.bungee.api.chat.ComponentBuilder;
++import net.md_5.bungee.api.plugin.Command;
++
++public class CommandRegister extends Command {
++
++    public CommandRegister() {
++        super("register", "waterdrop.commands.register");
++    }
++
++    @Override
++    public void execute(CommandSender sender, String[] args) {
++        if(BungeeCord.getInstance().getConfig().isHybridMode() && sender instanceof UserConnection) {
++            if(args.length != 2) {
++                sender.sendMessage(new ComponentBuilder("Usage: /register <password> <password confirmation>").color(ChatColor.RED).create());
++                return;
++            }
++
++            WaterHybridProfile profile = ((UserConnection) sender).getHybridProfile();
++
++            if(profile.isRegistered()) {
++                sender.sendMessage(new ComponentBuilder("Already registered.").color(ChatColor.RED).create());
++                return;
++            }
++
++            if(!args[0].equals(args[1])) {
++                sender.sendMessage(new ComponentBuilder("Passwords do not match.").color(ChatColor.RED).create());
++                return;
++            }
++
++            profile.register(args[0]);
++
++            sender.sendMessage(new ComponentBuilder("Successfully registered.").color(ChatColor.GREEN).create());
++        } else {
++            sender.sendMessage(new ComponentBuilder("Command unavailable.").color(ChatColor.RED).create());
++        }
++    }
++}
+diff --git a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
+index e860214f..6fd02f3f 100644
+--- a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
++++ b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
+@@ -1,6 +1,7 @@
+ package io.github.waterfallmc.waterfall.conf;
+ 
+ import com.google.common.base.Joiner;
++import net.md_5.bungee.BungeeCord;
+ import net.md_5.bungee.conf.Configuration;
+ import net.md_5.bungee.conf.YamlConfig;
+ import net.md_5.bungee.protocol.ProtocolConstants;
+@@ -44,6 +45,12 @@ public class WaterfallConfiguration extends Configuration {
+ 
+     private boolean disableEntityMetadataRewrite = false;
+ 
++    private String databaseUrl = "";
++    private String databaseUsername = "";
++    private String databasePassword = "";
++
++    private boolean hybridMode = false;
++
+     @Override
+     public void load() {
+         super.load();
+@@ -56,6 +63,13 @@ public class WaterfallConfiguration extends Configuration {
+         tabThrottle = config.getInt("throttling.tab_complete", tabThrottle);
+         disableModernTabLimiter = config.getBoolean("disable_modern_tab_limiter", disableModernTabLimiter);
+         disableEntityMetadataRewrite = config.getBoolean("disable_entity_metadata_rewrite", disableEntityMetadataRewrite);
++
++        databaseUrl = config.getString("database.url", databaseUrl);
++        databaseUsername = config.getString("database.username", databaseUsername);
++        databasePassword = config.getString("database.password", databasePassword);
++
++        hybridMode = config.getBoolean("hybrid_mode", hybridMode);
++        BungeeCord.getInstance().getLogger().info("hm: " + hybridMode);
+     }
+ 
+     @Override
+@@ -87,4 +101,24 @@ public class WaterfallConfiguration extends Configuration {
+     public boolean isDisableEntityMetadataRewrite() {
+         return disableEntityMetadataRewrite;
+     }
++
++    @Override
++    public String getDatabaseUrl() {
++        return databaseUrl;
++    }
++
++    @Override
++    public String getDatabaseUsername() {
++        return databaseUsername;
++    }
++
++    @Override
++    public String getDatabasePassword() {
++        return databasePassword;
++    }
++
++    @Override
++    public boolean isHybridMode() {
++        return hybridMode;
++    }
+ }
+diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
+index af001288..49b2dbfa 100644
+--- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
++++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
+@@ -10,6 +10,9 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
+ import com.google.gson.Gson;
+ import com.google.gson.GsonBuilder;
+ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
++import fr.thekinrar.waterdrop.hybrid.WaterHybridEngine;
++import fr.thekinrar.waterdrop.hybrid.commands.CommandLogin;
++import fr.thekinrar.waterdrop.hybrid.commands.CommandRegister;
+ import io.github.waterfallmc.waterfall.conf.WaterfallConfiguration;
+ import io.netty.bootstrap.ServerBootstrap;
+ import io.netty.channel.Channel;
+@@ -22,9 +25,10 @@ import io.netty.util.ResourceLeakDetector;
+ import java.io.File;
+ import java.io.FileReader;
+ import java.io.IOException;
+-import java.io.PrintStream;
+ import java.net.InetSocketAddress;
+ import java.net.SocketAddress;
++import java.sql.Connection;
++import java.sql.DriverManager;
+ import java.text.MessageFormat;
+ import java.util.ArrayList;
+ import java.util.Collection;
+@@ -173,9 +177,16 @@ public class BungeeCord extends ProxyServer
+     private ConnectionThrottle connectionThrottle;
+     private final ModuleManager moduleManager = new ModuleManager();
+ 
++    @Getter
++    private Connection connection;
++
++    @Getter
++    private final WaterHybridEngine hybridEngine = new WaterHybridEngine();
++
+     {
+         // TODO: Proper fallback when we interface the manager
+         registerChannel( "BungeeCord" );
++        registerChannel( "bungeecord:hybrid" );
+     }
+ 
+     public static BungeeCord getInstance()
+@@ -228,6 +239,8 @@ public class BungeeCord extends ProxyServer
+         getPluginManager().registerCommand( null, new CommandIP() );
+         getPluginManager().registerCommand( null, new CommandBungee() );
+         getPluginManager().registerCommand( null, new CommandPerms() );
++        getPluginManager().registerCommand( null, new CommandLogin() );
++        getPluginManager().registerCommand( null, new CommandRegister() );
+ 
+         if ( !Boolean.getBoolean( "net.md_5.bungee.native.disable" ) )
+         {
+@@ -283,6 +296,17 @@ public class BungeeCord extends ProxyServer
+             registerChannel( ForgeConstants.FORGE_REGISTER );
+         }
+ 
++        Class.forName("org.postgresql.Driver");
++        connection = DriverManager.getConnection(config.getDatabaseUrl(), config.getDatabaseUsername(), config.getDatabasePassword());
++
++        File legacyHybridData = new File("hybrid.dat");
++        if(legacyHybridData.isFile()) {
++            getLogger().info("Found legacy hybrid.dat! Starting import.");
++            getHybridEngine().importLegacyData(legacyHybridData);
++            getLogger().info("Moving hybrid.dat to hybrid.dat.bak.");
++            legacyHybridData.renameTo(new File("hybrid.dat.bak"));
++        }
++
+         isRunning = true;
+ 
+         pluginManager.enablePlugins();
+@@ -482,6 +506,9 @@ public class BungeeCord extends ProxyServer
+             plugin.getExecutorService().shutdownNow();
+         }
+ 
++        getLogger().info("Stopping internal tasks");
++        getScheduler().cancelAll();
++
+         getLogger().info( "Closing IO threads" );
+                 bossEventLoopGroup.shutdownGracefully();
+                 workerEventLoopGroup.shutdownGracefully();
+diff --git a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
+index 35a19224..5afcd8df 100644
+--- a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
++++ b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
+@@ -225,6 +225,7 @@ public class ServerConnector extends PacketHandler
+ 
+         for ( PluginMessage message : user.getPendingConnection().getRelayMessages() )
+         {
++            BungeeCord.getInstance().getLogger().info("writing pm " + message.getTag());
+             ch.write( message );
+         }
+ 
+diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+index 7c129221..6f7ebeb2 100644
+--- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
++++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
+ import com.google.common.collect.HashMultimap;
+ import com.google.common.collect.ImmutableMap;
+ import com.google.common.collect.Multimap;
++import fr.thekinrar.waterdrop.hybrid.WaterHybridProfile;
+ import io.netty.bootstrap.Bootstrap;
+ import io.netty.channel.Channel;
+ import io.netty.channel.ChannelFuture;
+@@ -153,6 +154,32 @@ public final class UserConnection implements ProxiedPlayer
+         }
+     };
+ 
++    @Getter
++    @Setter
++    private WaterHybridProfile hybridProfile;
++
++    @Getter
++    @Setter
++    private UUID onlineId;
++
++    @Getter
++    private boolean authenticated;
++
++    @Setter
++    private boolean lateAuth;
++
++    public void setAuthenticated(boolean authenticated) {
++        if(!this.authenticated && authenticated && lateAuth) {
++            server.unsafe().sendPacket(getAuthenticatePluginMessage());
++        }
++
++        this.authenticated = authenticated;
++    }
++
++    public boolean isOnline() {
++        return onlineId != null;
++    }
++
+     public void init()
+     {
+         this.entityRewrite = EntityMap.getEntityMap( getPendingConnection().getVersion() );
+@@ -751,4 +778,8 @@ public final class UserConnection implements ProxiedPlayer
+         return entityRewrite == net.md_5.bungee.entitymap.EntityMap_Dummy.INSTANCE;
+     }
+     // Waterfall end
++
++    public PluginMessage getAuthenticatePluginMessage() {
++        return new PluginMessage("bungeecord:hybrid", "authenticate".getBytes(), false);
++    }
+ }
+diff --git a/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java b/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
+index 65121ba2..57c999bf 100644
+--- a/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
++++ b/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
+@@ -103,6 +103,7 @@ public class YamlConfig implements ConfigurationAdapter
+             set( "permissions.default", Arrays.asList( new String[]
+             {
+                 "bungeecord.command.server", "bungeecord.command.list"
++                , "waterdrop.commands.login", "waterdrop.commands.register"
+             } ) );
+             set( "permissions.admin", Arrays.asList( new String[]
+             {
+diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
+index 007d3daf..03523bf0 100644
+--- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
++++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
+@@ -12,6 +12,11 @@ import java.util.List;
+ import java.util.UUID;
+ import java.util.logging.Level;
+ import javax.crypto.SecretKey;
++
++import fr.thekinrar.waterdrop.hybrid.WaterHybridEngine;
++import fr.thekinrar.waterdrop.hybrid.ClientIdentifier;
++import fr.thekinrar.waterdrop.hybrid.WaterHybridProfile;
++import fr.thekinrar.waterdrop.hybrid.OnlineProfile;
+ import lombok.Getter;
+ import lombok.RequiredArgsConstructor;
+ import net.md_5.bungee.BungeeCord;
+@@ -93,6 +98,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+     @Getter
+     private boolean onlineMode = BungeeCord.getInstance().config.isOnlineMode();
+     @Getter
++    private boolean hybridMode = BungeeCord.getInstance().config.isHybridMode();
++    @Getter
+     private InetSocketAddress virtualHost;
+     private String name;
+     @Getter
+@@ -105,6 +112,13 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+     private boolean legacy;
+     @Getter
+     private String extraDataInHandshake = "";
++    @Getter
++    private WaterHybridEngine hybridEngine = BungeeCord.getInstance().getHybridEngine();
++    @Getter
++    private boolean invalidSessionWorkaround;
++    @Getter
++    private WaterHybridProfile hybridProfile;
++    private UUID onlineId = null;
+ 
+     @Override
+     public boolean shouldHandle(PacketWrapper packet) throws Exception
+@@ -129,6 +143,14 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+         this.ch = channel;
+     }
+ 
++    @Override
++    public void disconnected(ChannelWrapper channel) throws Exception {
++        if(thisState == State.ENCRYPT) {
++            hybridEngine.getLogger().info(getName() + " seems to have invalid session!");
++            hybridEngine.setInvalidSession(new ClientIdentifier(getAddress().getHostString(), getName()));
++        }
++    }
++
+     @Override
+     public void exception(Throwable t) throws Exception
+     {
+@@ -382,6 +404,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+ 
+         // If offline mode and they are already on, don't allow connect
+         // We can just check by UUID here as names are based on UUID
++        // TODO HYBRID check this is ok
+         if ( !isOnlineMode() && bungee.getPlayer( getUniqueId() ) != null )
+         {
+             disconnect( bungee.getTranslation( "already_connected_proxy" ) );
+@@ -403,11 +426,32 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+                 {
+                     return;
+                 }
+-                if ( onlineMode )
++
++                boolean encryption = isOnlineMode();
++                if(isHybridMode()) {
++                    /* TODO HYBRID if(PapyrusConfig.hybridOfflineOnlyHosts.contains(this.networkManager.virtualHost.getHostString())) {
++                        hybridEngine.getLogger().info("Forcing offline mode for player " + getGameProfile().getName() + " (offline host: " + this.networkManager.virtualHost.getHostString() + ")");
++                    } else */ if(hybridEngine.hasInvalidSession(new ClientIdentifier(getAddress().getHostString(), getName()))) {
++                        hybridEngine.getLogger().info("Forcing offline mode for player " + getName() + " (invalid session)");
++                        invalidSessionWorkaround = true;
++                    } else {
++                        encryption = true;
++                    }
++                }
++
++                if ( encryption )
+                 {
+                     unsafe().sendPacket( request = EncryptionUtil.encryptRequest() );
+                 } else
+                 {
++                    hybridProfile = hybridEngine.getOfflinePlayerProfile(getName());
++                    hybridProfile.setInvalidSessionWorkaround(invalidSessionWorkaround);
++
++                    hybridEngine.getLogger().info("Player " + getName() + " is offline");
++                    hybridEngine.getLogger().info("UUID of player " + getName() + " is " + hybridProfile.getId());
++
++                    uniqueId = hybridProfile.getId();
++
+                     finish();
+                 }
+                 thisState = State.ENCRYPT;
+@@ -446,9 +490,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+ 
+         Callback<String> handler = new Callback<String>()
+         {
++            private boolean called;
+             @Override
+             public void done(String result, Throwable error)
+             {
++                if(called) return;
++                called = true;
+                 if ( error == null )
+                 {
+                     LoginResult obj = BungeeCord.getInstance().gson.fromJson( result, LoginResult.class );
+@@ -457,6 +504,27 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+                         loginProfile = obj;
+                         name = obj.getName();
+                         uniqueId = Util.getUUID( obj.getId() );
++
++                        if(isHybridMode()) {
++                            hybridProfile = hybridEngine.getOnlinePlayerProfile(new OnlineProfile(uniqueId, name));
++
++                            hybridEngine.getLogger().info("Player " + name + " is online with UUID " + uniqueId);
++                            hybridEngine.getLogger().info("UUID of player " + name + " is " + hybridProfile.getId());
++
++                            onlineId = uniqueId;
++                            uniqueId = hybridProfile.getId();
++                        }
++
++                        finish();
++                        return;
++                    } else if (isHybridMode()) {
++                        hybridProfile = hybridEngine.getOfflinePlayerProfile(getName());
++
++                        hybridEngine.getLogger().info("Player " + getName() + " is offline");
++                        hybridEngine.getLogger().info("UUID of player " + getName() + " is " + hybridProfile.getId());
++
++                        uniqueId = hybridProfile.getId();
++
+                         finish();
+                         return;
+                     }
+@@ -474,7 +542,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+ 
+     private void finish()
+     {
+-        if ( isOnlineMode() )
++        if ( !isHybridMode() && isOnlineMode() )
+         {
+             // Check for multiple connections
+             // We have to check for the old name first
+@@ -536,6 +604,17 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+                             userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
+                             userCon.init();
+ 
++                            if(isHybridMode()) {
++                                userCon.setOnlineId(onlineId);
++                                hybridProfile.authenticate(userCon, getAddress());
++
++                                if(userCon.isAuthenticated()) {
++                                    relayMessages.add(userCon.getAuthenticatePluginMessage());
++                                }
++
++                                userCon.setLateAuth(true);
++                            }
++
+                             unsafe.sendPacket( new LoginSuccess( getUniqueId().toString(), getName() ) ); // With dashes in between
+                             ch.setProtocol( Protocol.GAME );
+ 
+@@ -640,6 +719,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+     public void setOnlineMode(boolean onlineMode)
+     {
+         Preconditions.checkState( thisState == State.USERNAME, "Can only set online mode status whilst state is username" );
++        Preconditions.checkState( !hybridMode, "Can only set online mode status whilst hybrid mode is disabled" );
+         this.onlineMode = onlineMode;
+     }
+ 
+@@ -648,6 +728,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+     {
+         Preconditions.checkState( thisState == State.USERNAME, "Can only set uuid while state is username" );
+         Preconditions.checkState( !onlineMode, "Can only set uuid when online mode is false" );
++        Preconditions.checkState( !hybridMode, "Can only set uuid when hybrid mode is false" );
+         this.uniqueId = uuid;
+     }
+ 
+diff --git a/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java b/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
+index 4d8bac5d..9447e6a5 100644
+--- a/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
++++ b/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
+@@ -149,6 +149,7 @@ public class UpstreamBridge extends PacketHandler
+         if ( !bungee.getPluginManager().callEvent( chatEvent ).isCancelled() )
+         {
+             chat.setMessage( chatEvent.getMessage() );
++            // TODO HYBRID
+             if ( !chatEvent.isCommand() || !bungee.getPluginManager().dispatchCommand( con, chat.getMessage().substring( 1 ) ) )
+             {
+                 con.getServer().unsafe().sendPacket( chat );
+@@ -232,6 +233,11 @@ public class UpstreamBridge extends PacketHandler
+             throw CancelSendSignal.INSTANCE;
+         }
+ 
++        if ( pluginMessage.getTag().equals( "bungeecord:hybrid" ) )
++        {
++            throw CancelSendSignal.INSTANCE;
++        }
++
+         if ( BungeeCord.getInstance().config.isForgeSupport() )
+         {
+             // Hack around Forge race conditions
+diff --git a/proxy/src/main/java/net/md_5/bungee/scheduler/BungeeScheduler.java b/proxy/src/main/java/net/md_5/bungee/scheduler/BungeeScheduler.java
+index fd0dabcf..c223a829 100644
+--- a/proxy/src/main/java/net/md_5/bungee/scheduler/BungeeScheduler.java
++++ b/proxy/src/main/java/net/md_5/bungee/scheduler/BungeeScheduler.java
+@@ -4,15 +4,18 @@ import com.google.common.base.Preconditions;
+ import com.google.common.collect.HashMultimap;
+ import com.google.common.collect.Multimap;
+ import com.google.common.collect.Multimaps;
++import com.google.common.util.concurrent.ThreadFactoryBuilder;
+ import gnu.trove.TCollections;
+ import gnu.trove.map.TIntObjectMap;
+ import gnu.trove.map.hash.TIntObjectHashMap;
+ import java.util.HashSet;
+ import java.util.Set;
+ import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import net.md_5.bungee.api.plugin.Plugin;
++import net.md_5.bungee.api.scheduler.GroupedThreadFactory;
+ import net.md_5.bungee.api.scheduler.ScheduledTask;
+ import net.md_5.bungee.api.scheduler.TaskScheduler;
+ 
+@@ -23,6 +26,12 @@ public class BungeeScheduler implements TaskScheduler
+     private final AtomicInteger taskCounter = new AtomicInteger();
+     private final TIntObjectMap<BungeeTask> tasks = TCollections.synchronizedMap( new TIntObjectHashMap<BungeeTask>() );
+     private final Multimap<Plugin, BungeeTask> tasksByPlugin = Multimaps.synchronizedMultimap( HashMultimap.<Plugin, BungeeTask>create() );
++    private final ExecutorService internalService = Executors.newCachedThreadPool(
++            new ThreadFactoryBuilder()
++                    .setNameFormat("Internal Pool Thread #%1$d")
++                    .setThreadFactory( new GroupedThreadFactory( null, "Internal"))
++                    .build()
++    );
+     //
+     private final Unsafe unsafe = new Unsafe()
+     {
+@@ -105,6 +114,25 @@ public class BungeeScheduler implements TaskScheduler
+         return prepared;
+     }
+ 
++    public ScheduledTask internal(Runnable task, long delay, long period, TimeUnit unit) {
++        Preconditions.checkNotNull( task, "task" );
++        BungeeTask prepared = new BungeeTask( this, taskCounter.getAndIncrement(), null, task, delay, period, unit );
++
++        synchronized ( lock )
++        {
++            tasks.put( prepared.getId(), prepared );
++        }
++
++        internalService.execute(prepared);
++        return prepared;
++    }
++
++    public void cancelAll() {
++        for (ScheduledTask task : tasks.valueCollection()) {
++            cancel(task);
++        }
++    }
++
+     @Override
+     public Unsafe unsafe()
+     {
+-- 
+2.26.1
+
