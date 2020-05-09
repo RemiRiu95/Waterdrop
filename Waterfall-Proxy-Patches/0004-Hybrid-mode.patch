@@ -1,4 +1,4 @@
-From b47e8d4eb8b25f4b228235d1f945ed76fa99eecc Mon Sep 17 00:00:00 2001
+From 24cd5341371a43f1c268a359e242228c1d49f56a Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -610,7 +610,7 @@ index 00000000..ce031f45
 +}
 diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
 new file mode 100644
-index 00000000..bf160720
+index 00000000..55881ca9
 --- /dev/null
 +++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
 @@ -0,0 +1,314 @@
@@ -684,7 +684,7 @@ index 00000000..bf160720
 +                onlineId = (UUID) rs.getObject("online_id");
 +                password = rs.getBytes("password");
 +
-+                if(!isRegistered()) {
++                if(password == null) {
 +                    passwordProvider = engine.findPasswordProvider(this);
 +
 +                    if(passwordProvider != null) {
