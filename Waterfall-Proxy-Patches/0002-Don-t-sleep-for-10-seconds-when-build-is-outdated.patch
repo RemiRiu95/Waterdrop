@@ -1,4 +1,4 @@
-From 3ed01849a3c000e4f46b4b094c2811e0af0dab71 Mon Sep 17 00:00:00 2001
+From fa3aa527d844d958ad79125f0aece790d0dda500 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:40:52 +0200
 Subject: [PATCH] Don't sleep for 10 seconds when build is "outdated"
@@ -23,5 +23,5 @@ index d565557f..f6e6c724 100644
          }
  
 -- 
-2.26.1
+2.27.0
 
