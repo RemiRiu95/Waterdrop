@@ -1,4 +1,4 @@
-From 972e2a284579f78f0e210ecf755d983b02c37a58 Mon Sep 17 00:00:00 2001
+From f3aed3f77f5b44dbf7a13591761d7ba1e84ec44b Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 02:56:06 +0200
 Subject: [PATCH] Branding
@@ -475,7 +475,7 @@ index ec465dd3..ecd02947 100644
      <dependencies>
          <dependency>
 diff --git a/pom.xml b/pom.xml
-index 3ca7ca91..a7c9adb6 100644
+index 3ca7ca91..6ac2f525 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -4,25 +4,20 @@
@@ -532,44 +532,39 @@ index 3ca7ca91..a7c9adb6 100644
          </developer>
      </developers>
  
-@@ -65,28 +48,24 @@
+@@ -64,31 +47,6 @@
+         <module>native</module>
      </modules>
  
-     <scm>
+-    <scm>
 -        <connection>scm:git:git@github.com:com:WaterfallMC/Waterfall.git</connection>
 -        <developerConnection>scm:git:git@github.com:WaterfallMC/Waterfall.git</developerConnection>
 -        <url>git@github.com:WaterfallMC/Waterfall.git</url>
-+        <connection>scm:git:git@git.atlanti.se:com:papyrus/waterdrop.git</connection>
-+        <developerConnection>scm:git:git@git.atlanti.se:papyrus/waterdrop.git</developerConnection>
-+        <url>git@git.atlanti.se:papyrus/waterdrop.git</url>
-     </scm>
-     <issueManagement>
+-    </scm>
+-    <issueManagement>
 -        <system>GitHub</system>
 -        <url>https://github.com/PaperMC/Waterfall/issues</url>
-+        <system>Gitea</system>
-+        <url>https://git.atlanti.se/papyrus/waterdrop/issues</url>
-     </issueManagement>
-     <ciManagement>
-         <system>jenkins</system>
+-    </issueManagement>
+-    <ciManagement>
+-        <system>jenkins</system>
 -        <url>https://papermc.io/ci/job/Waterfall/</url>
-+        <url>https://jenkins.atlanti.se/job/Waterdrop/</url>
-     </ciManagement>
- 
-     <distributionManagement>
-         <repository>
+-    </ciManagement>
+-
+-    <distributionManagement>
+-        <repository>
 -            <id>papermc-releases</id>
 -            <url>https://papermc.io/repo/repository/maven-releases/</url>
-+            <id>papyrus</id>
-+            <url>https://maven.atlanti.se/repository/maven-papyrus/</url>
-         </repository>
+-        </repository>
 -        <snapshotRepository>
 -            <id>papermc-snapshots</id>
 -            <url>https://papermc.io/repo/repository/maven-snapshots/</url>
 -        </snapshotRepository>
-     </distributionManagement>
- 
+-    </distributionManagement>
+-
      <properties>
-@@ -340,8 +319,8 @@
+         <build.number>unknown</build.number>
+         <netty.version>4.1.49.Final</netty.version>
+@@ -340,8 +298,8 @@
                                  </goals>
                                  <inherited>false</inherited>
                                  <configuration>
@@ -770,5 +765,5 @@ index 1c845a6d..afa90951 100644
              <scope>compile</scope>
          </dependency>
 -- 
-2.27.0
+2.28.0
 

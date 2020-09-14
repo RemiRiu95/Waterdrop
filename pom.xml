@@ -15,6 +15,27 @@
         <module>Waterdrop-Proxy</module>
     </modules>
 
+    <scm>
+        <connection>scm:git:git@git.atlanti.se:com:papyrus/waterdrop.git</connection>
+        <developerConnection>scm:git:git@git.atlanti.se:papyrus/waterdrop.git</developerConnection>
+        <url>git@git.atlanti.se:papyrus/waterdrop.git</url>
+    </scm>
+    <issueManagement>
+        <system>Gitea</system>
+        <url>https://git.atlanti.se/papyrus/waterdrop/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>jenkins</system>
+        <url>https://jenkins.atlanti.se/job/Waterdrop/</url>
+    </ciManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>papyrus</id>
+            <url>https://maven.atlanti.se/repository/maven-papyrus/</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <defaultGoal>clean install</defaultGoal>
     </build>
