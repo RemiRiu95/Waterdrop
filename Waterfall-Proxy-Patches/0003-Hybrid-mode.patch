@@ -1,4 +1,4 @@
-From 4914ab1bff9805f16b5b9b42b5d4959f6bdd935b Mon Sep 17 00:00:00 2001
+From e2eb570e347125100e389647ba2adea9fc5a9c33 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -1261,7 +1261,7 @@ index b486f2aa..19f0788b 100644
          }
  
 diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
-index b0125245..2b8a9643 100644
+index b0125245..c5b59a82 100644
 --- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 +++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 @@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
@@ -1272,7 +1272,7 @@ index b0125245..2b8a9643 100644
  import io.netty.bootstrap.Bootstrap;
  import io.netty.channel.Channel;
  import io.netty.channel.ChannelFuture;
-@@ -153,6 +154,32 @@ public final class UserConnection implements ProxiedPlayer
+@@ -153,6 +154,33 @@ public final class UserConnection implements ProxiedPlayer
          }
      };
  
@@ -1293,6 +1293,7 @@ index b0125245..2b8a9643 100644
 +    public void setAuthenticated(boolean authenticated) {
 +        if(!this.authenticated && authenticated && lateAuth) {
 +            server.unsafe().sendPacket(getAuthenticatePluginMessage());
++            pendingConnection.getRelayMessages().add(getAuthenticatePluginMessage());
 +        }
 +
 +        this.authenticated = authenticated;
@@ -1305,7 +1306,7 @@ index b0125245..2b8a9643 100644
      public void init()
      {
          this.entityRewrite = EntityMap.getEntityMap( getPendingConnection().getVersion() );
-@@ -751,4 +778,8 @@ public final class UserConnection implements ProxiedPlayer
+@@ -751,4 +779,8 @@ public final class UserConnection implements ProxiedPlayer
          return entityRewrite == net.md_5.bungee.entitymap.EntityMap_Dummy.INSTANCE;
      }
      // Waterfall end
