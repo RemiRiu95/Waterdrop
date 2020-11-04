@@ -1,11 +1,11 @@
-From f3aed3f77f5b44dbf7a13591761d7ba1e84ec44b Mon Sep 17 00:00:00 2001
+From 7be46a93aa1d4f56fd70a0374970783924d393ac Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 02:56:06 +0200
 Subject: [PATCH] Branding
 
 
 diff --git a/api/pom.xml b/api/pom.xml
-index 87b279b8..c6bcf25a 100644
+index 10db38b7..4f1786d0 100644
 --- a/api/pom.xml
 +++ b/api/pom.xml
 @@ -4,42 +4,41 @@
@@ -64,7 +64,7 @@ index 87b279b8..c6bcf25a 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/bootstrap/pom.xml b/bootstrap/pom.xml
-index a43db907..beb7814b 100644
+index 0a890393..ef62e727 100644
 --- a/bootstrap/pom.xml
 +++ b/bootstrap/pom.xml
 @@ -4,19 +4,18 @@
@@ -141,7 +141,7 @@ index 8523d99a..dfc31e81 100644
      <dependencies>
          <dependency>
 diff --git a/config/pom.xml b/config/pom.xml
-index 5f4f2b33..c837a5d7 100644
+index 099a4643..b2ecdc41 100644
 --- a/config/pom.xml
 +++ b/config/pom.xml
 @@ -4,19 +4,18 @@
@@ -475,7 +475,7 @@ index ec465dd3..ecd02947 100644
      <dependencies>
          <dependency>
 diff --git a/pom.xml b/pom.xml
-index 3ca7ca91..6ac2f525 100644
+index fd03c640..cae7caf5 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -4,25 +4,20 @@
@@ -563,7 +563,7 @@ index 3ca7ca91..6ac2f525 100644
 -
      <properties>
          <build.number>unknown</build.number>
-         <netty.version>4.1.49.Final</netty.version>
+         <netty.version>4.1.53.Final</netty.version>
 @@ -340,8 +298,8 @@
                                  </goals>
                                  <inherited>false</inherited>

@@ -1,4 +1,4 @@
-From e2eb570e347125100e389647ba2adea9fc5a9c33 Mon Sep 17 00:00:00 2001
+From f549a7511823a37a59f3559a35f6855deedfd4c4 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -60,13 +60,13 @@ index 00000000..ee4b9441
 +    boolean verifyPassword(String username, String password);
 +}
 diff --git a/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java b/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
-index 4a198ee9..ef66d11a 100644
+index d69463f0..f6fcfce1 100644
 --- a/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
 +++ b/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
-@@ -255,4 +255,12 @@ public interface ProxyConfig
-      * @return Should we disable entity metadata rewriting?
+@@ -261,4 +261,12 @@ public interface ProxyConfig
+      * @return {@code true} if tablist rewriting is disabled, {@code false} otherwise
       */
-     boolean isDisableEntityMetadataRewrite();
+     boolean isDisableTabListRewrite();
 +
 +    String getDatabaseUrl();
 +
@@ -97,7 +97,7 @@ index a4011335..4fda8f97 100644
 +
  }
 diff --git a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
-index f7459860..d352613e 100644
+index 6e908b74..febcd13f 100644
 --- a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
 +++ b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
 @@ -3,6 +3,8 @@ package net.md_5.bungee.api.connection;
@@ -109,7 +109,7 @@ index f7459860..d352613e 100644
  import net.md_5.bungee.api.Callback;
  import net.md_5.bungee.api.ChatMessageType;
  import net.md_5.bungee.api.CommandSender;
-@@ -372,4 +374,8 @@ public interface ProxiedPlayer extends Connection, CommandSender
+@@ -388,4 +390,8 @@ public interface ProxiedPlayer extends Connection, CommandSender
       * @return this player's {@link Scoreboard}
       */
      Scoreboard getScoreboard();
@@ -119,18 +119,18 @@ index f7459860..d352613e 100644
 +    boolean isAuthenticated();
  }
 diff --git a/api/src/main/java/net/md_5/bungee/api/plugin/Command.java b/api/src/main/java/net/md_5/bungee/api/plugin/Command.java
-index eba3040a..090f3263 100644
+index b4566327..fb65a96a 100644
 --- a/api/src/main/java/net/md_5/bungee/api/plugin/Command.java
 +++ b/api/src/main/java/net/md_5/bungee/api/plugin/Command.java
-@@ -17,6 +17,7 @@ public abstract class Command
-     private final String name;
-     private final String permission;
+@@ -20,6 +20,7 @@ public abstract class Command
      private final String[] aliases;
+     @Setter(AccessLevel.PROTECTED)
+     private String permissionMessage;
 +    private final boolean unauthenticated; // Waterdrop
  
      /**
       * Construct a new command with no permissions or aliases.
-@@ -38,9 +39,14 @@ public abstract class Command
+@@ -41,9 +42,14 @@ public abstract class Command
       */
      public Command(String name, String permission, String... aliases)
      {
@@ -143,10 +143,10 @@ index eba3040a..090f3263 100644
          this.permission = permission;
 +        this.unauthenticated = unauthenticated;
          this.aliases = aliases;
+         this.permissionMessage = null;
      }
- 
 diff --git a/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java b/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
-index 431d4d6f..42191de4 100644
+index 969533df..e6a8dce4 100644
 --- a/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
 +++ b/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
 @@ -171,7 +171,14 @@ public final class PluginManager
@@ -1101,7 +1101,7 @@ index 00000000..3b04b682
 +    }
 +}
 diff --git a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
-index e860214f..6fd02f3f 100644
+index 527f310e..ba57379d 100644
 --- a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
 +++ b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
 @@ -1,6 +1,7 @@
@@ -1112,9 +1112,9 @@ index e860214f..6fd02f3f 100644
  import net.md_5.bungee.conf.Configuration;
  import net.md_5.bungee.conf.YamlConfig;
  import net.md_5.bungee.protocol.ProtocolConstants;
-@@ -44,6 +45,12 @@ public class WaterfallConfiguration extends Configuration {
- 
+@@ -45,6 +46,12 @@ public class WaterfallConfiguration extends Configuration {
      private boolean disableEntityMetadataRewrite = false;
+     private boolean disableTabListRewrite = false;
  
 +    private String databaseUrl = "";
 +    private String databaseUsername = "";
@@ -1125,10 +1125,10 @@ index e860214f..6fd02f3f 100644
      @Override
      public void load() {
          super.load();
-@@ -56,6 +63,13 @@ public class WaterfallConfiguration extends Configuration {
-         tabThrottle = config.getInt("throttling.tab_complete", tabThrottle);
+@@ -58,6 +65,13 @@ public class WaterfallConfiguration extends Configuration {
          disableModernTabLimiter = config.getBoolean("disable_modern_tab_limiter", disableModernTabLimiter);
          disableEntityMetadataRewrite = config.getBoolean("disable_entity_metadata_rewrite", disableEntityMetadataRewrite);
+         disableTabListRewrite = config.getBoolean("disable_tab_list_rewrite", disableTabListRewrite);
 +
 +        databaseUrl = config.getString("database.url", databaseUrl);
 +        databaseUsername = config.getString("database.username", databaseUsername);
@@ -1139,9 +1139,9 @@ index e860214f..6fd02f3f 100644
      }
  
      @Override
-@@ -87,4 +101,24 @@ public class WaterfallConfiguration extends Configuration {
-     public boolean isDisableEntityMetadataRewrite() {
-         return disableEntityMetadataRewrite;
+@@ -94,4 +108,24 @@ public class WaterfallConfiguration extends Configuration {
+     public boolean isDisableTabListRewrite() {
+         return disableTabListRewrite;
      }
 +
 +    @Override
@@ -1261,7 +1261,7 @@ index b486f2aa..19f0788b 100644
          }
  
 diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
-index b0125245..c5b59a82 100644
+index 7ec119ea..82b499aa 100644
 --- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 +++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 @@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
@@ -1306,7 +1306,7 @@ index b0125245..c5b59a82 100644
      public void init()
      {
          this.entityRewrite = EntityMap.getEntityMap( getPendingConnection().getVersion() );
-@@ -751,4 +779,8 @@ public final class UserConnection implements ProxiedPlayer
+@@ -759,4 +787,8 @@ public final class UserConnection implements ProxiedPlayer
          return entityRewrite == net.md_5.bungee.entitymap.EntityMap_Dummy.INSTANCE;
      }
      // Waterfall end
