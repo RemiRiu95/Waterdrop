@@ -1,4 +1,4 @@
-From 5613bbb3e75deffcea947ba2ac2b15fb5dd93906 Mon Sep 17 00:00:00 2001
+From 6992abbcb55476e5ed2c336b2573d4a2a1b440ba Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Mon, 9 Nov 2020 01:42:42 +0100
 Subject: [PATCH] FML2 protocol support
@@ -164,7 +164,7 @@ index 82b499aa..26fa37a8 100644
          };
          ChannelFutureListener listener = new ChannelFutureListener()
 diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
-index d345588d..4e9105a1 100644
+index 31db6971..bcdb5deb 100644
 --- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 +++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 @@ -121,6 +121,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
@@ -196,8 +196,8 @@ index d345588d..4e9105a1 100644
          }
  
          // SRV records can end with a . depending on DNS / client.
-@@ -617,8 +623,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
-                                 userCon.setLateAuth(true);
+@@ -619,8 +625,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+                                 userCon.setAuthenticated(true);
                              }
  
 -                            unsafe.sendPacket( new LoginSuccess( getUniqueId(), getName() ) );
@@ -265,5 +265,5 @@ index 989bfd87..9ede17cf 100644
  import net.md_5.bungee.connection.CancelSendSignal;
  import net.md_5.bungee.connection.InitialHandler;
 -- 
-2.28.0
+2.30.1
 
