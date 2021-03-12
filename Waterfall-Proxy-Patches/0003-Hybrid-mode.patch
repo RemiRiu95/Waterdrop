@@ -1,4 +1,4 @@
-From 7c0d1a3982dc92079a0d2b66c914a610514ecd48 Mon Sep 17 00:00:00 2001
+From 5c3f5bfe3da0e4b1671459f23d39f16abe8f9577 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -1101,7 +1101,7 @@ index 00000000..3b04b682
 +    }
 +}
 diff --git a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
-index 527f310e..ba57379d 100644
+index 527f310e..3f6aa09d 100644
 --- a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
 +++ b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
 @@ -1,6 +1,7 @@
@@ -1125,7 +1125,7 @@ index 527f310e..ba57379d 100644
      @Override
      public void load() {
          super.load();
-@@ -58,6 +65,13 @@ public class WaterfallConfiguration extends Configuration {
+@@ -58,6 +65,12 @@ public class WaterfallConfiguration extends Configuration {
          disableModernTabLimiter = config.getBoolean("disable_modern_tab_limiter", disableModernTabLimiter);
          disableEntityMetadataRewrite = config.getBoolean("disable_entity_metadata_rewrite", disableEntityMetadataRewrite);
          disableTabListRewrite = config.getBoolean("disable_tab_list_rewrite", disableTabListRewrite);
@@ -1135,11 +1135,10 @@ index 527f310e..ba57379d 100644
 +        databasePassword = config.getString("database.password", databasePassword);
 +
 +        hybridMode = config.getBoolean("hybrid_mode", hybridMode);
-+        BungeeCord.getInstance().getLogger().info("hm: " + hybridMode);
      }
  
      @Override
-@@ -94,4 +108,24 @@ public class WaterfallConfiguration extends Configuration {
+@@ -94,4 +107,24 @@ public class WaterfallConfiguration extends Configuration {
      public boolean isDisableTabListRewrite() {
          return disableTabListRewrite;
      }
