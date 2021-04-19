@@ -1,4 +1,4 @@
-From 5c3f5bfe3da0e4b1671459f23d39f16abe8f9577 Mon Sep 17 00:00:00 2001
+From 5b798f22a8f66ba85aad74fc85c2d747c9988834 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -97,7 +97,7 @@ index a4011335..4fda8f97 100644
 +
  }
 diff --git a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
-index 6e908b74..febcd13f 100644
+index 3dc32801..3dee31e3 100644
 --- a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
 +++ b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
 @@ -3,6 +3,8 @@ package net.md_5.bungee.api.connection;
@@ -109,7 +109,7 @@ index 6e908b74..febcd13f 100644
  import net.md_5.bungee.api.Callback;
  import net.md_5.bungee.api.ChatMessageType;
  import net.md_5.bungee.api.CommandSender;
-@@ -388,4 +390,8 @@ public interface ProxiedPlayer extends Connection, CommandSender
+@@ -387,4 +389,8 @@ public interface ProxiedPlayer extends Connection, CommandSender
       * @return this player's {@link Scoreboard}
       */
      Scoreboard getScoreboard();
@@ -146,10 +146,10 @@ index b4566327..fb65a96a 100644
          this.permissionMessage = null;
      }
 diff --git a/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java b/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
-index 969533df..e6a8dce4 100644
+index 90031156..b2bf084a 100644
 --- a/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
 +++ b/api/src/main/java/net/md_5/bungee/api/plugin/PluginManager.java
-@@ -171,7 +171,14 @@ public final class PluginManager
+@@ -186,7 +186,14 @@ public final class PluginManager
          Command command = getCommandIfEnabled( split[0], sender );
          if ( command == null )
          {
@@ -166,10 +166,10 @@ index 969533df..e6a8dce4 100644
  
          if ( !command.hasPermission( sender ) )
 diff --git a/proxy/pom.xml b/proxy/pom.xml
-index 7f1172b6..82edff12 100644
+index 2ee726a5..7e502407 100644
 --- a/proxy/pom.xml
 +++ b/proxy/pom.xml
-@@ -112,6 +112,30 @@
+@@ -142,6 +142,30 @@
              <scope>runtime</scope>
          </dependency>
          <!-- Waterfall end -->
@@ -1248,10 +1248,10 @@ index c336c42d..42154e21 100644
                  bossEventLoopGroup.shutdownGracefully();
                  workerEventLoopGroup.shutdownGracefully();
 diff --git a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
-index b486f2aa..19f0788b 100644
+index 2d9c0cda..d4afc12b 100644
 --- a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
 +++ b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
-@@ -225,6 +225,7 @@ public class ServerConnector extends PacketHandler
+@@ -227,6 +227,7 @@ public class ServerConnector extends PacketHandler
  
          for ( PluginMessage message : user.getPendingConnection().getRelayMessages() )
          {
@@ -1327,14 +1327,13 @@ index 65121ba2..57c999bf 100644
              set( "permissions.admin", Arrays.asList( new String[]
              {
 diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
-index 7e6027aa..31db6971 100644
+index b7ecd828..9ff75104 100644
 --- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 +++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
-@@ -12,6 +12,11 @@ import java.util.List;
- import java.util.UUID;
- import java.util.logging.Level;
+@@ -14,6 +14,10 @@ import java.util.logging.Level;
  import javax.crypto.SecretKey;
-+
+ import javax.crypto.spec.SecretKeySpec;
+ 
 +import fr.thekinrar.waterdrop.hybrid.WaterHybridEngine;
 +import fr.thekinrar.waterdrop.hybrid.ClientIdentifier;
 +import fr.thekinrar.waterdrop.hybrid.WaterHybridProfile;
@@ -1342,7 +1341,7 @@ index 7e6027aa..31db6971 100644
  import lombok.Getter;
  import lombok.RequiredArgsConstructor;
  import net.md_5.bungee.BungeeCord;
-@@ -95,6 +100,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -97,6 +101,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      @Getter
      private boolean onlineMode = BungeeCord.getInstance().config.isOnlineMode();
      @Getter
@@ -1351,7 +1350,7 @@ index 7e6027aa..31db6971 100644
      private InetSocketAddress virtualHost;
      private String name;
      @Getter
-@@ -107,6 +114,13 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -109,6 +115,13 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      private boolean legacy;
      @Getter
      private String extraDataInHandshake = "";
@@ -1365,7 +1364,7 @@ index 7e6027aa..31db6971 100644
  
      @Override
      public boolean shouldHandle(PacketWrapper packet) throws Exception
-@@ -131,6 +145,14 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -133,6 +146,14 @@ public class InitialHandler extends PacketHandler implements PendingConnection
          this.ch = channel;
      }
  
@@ -1380,7 +1379,7 @@ index 7e6027aa..31db6971 100644
      @Override
      public void exception(Throwable t) throws Exception
      {
-@@ -384,6 +406,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -386,6 +407,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
  
          // If offline mode and they are already on, don't allow connect
          // We can just check by UUID here as names are based on UUID
@@ -1388,7 +1387,7 @@ index 7e6027aa..31db6971 100644
          if ( !isOnlineMode() && bungee.getPlayer( getUniqueId() ) != null )
          {
              disconnect( bungee.getTranslation( "already_connected_proxy" ) );
-@@ -405,11 +428,32 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -407,11 +429,32 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                  {
                      return;
                  }
@@ -1422,7 +1421,7 @@ index 7e6027aa..31db6971 100644
                      finish();
                  }
                  thisState = State.ENCRYPT;
-@@ -448,9 +492,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -458,9 +501,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
  
          Callback<String> handler = new Callback<String>()
          {
@@ -1435,7 +1434,7 @@ index 7e6027aa..31db6971 100644
                  if ( error == null )
                  {
                      LoginResult obj = BungeeCord.getInstance().gson.fromJson( result, LoginResult.class );
-@@ -459,6 +506,27 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -469,6 +515,27 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                          loginProfile = obj;
                          name = obj.getName();
                          uniqueId = Util.getUUID( obj.getId() );
@@ -1463,7 +1462,7 @@ index 7e6027aa..31db6971 100644
                          finish();
                          return;
                      }
-@@ -476,7 +544,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -486,7 +553,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
  
      private void finish()
      {
@@ -1472,7 +1471,7 @@ index 7e6027aa..31db6971 100644
          {
              // Check for multiple connections
              // We have to check for the old name first
-@@ -538,6 +606,19 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -548,6 +615,19 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                              userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
                              userCon.init();
  
@@ -1492,7 +1491,7 @@ index 7e6027aa..31db6971 100644
                              unsafe.sendPacket( new LoginSuccess( getUniqueId(), getName() ) );
                              ch.setProtocol( Protocol.GAME );
  
-@@ -642,6 +723,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -652,6 +732,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      public void setOnlineMode(boolean onlineMode)
      {
          Preconditions.checkState( thisState == State.USERNAME, "Can only set online mode status whilst state is username" );
@@ -1500,7 +1499,7 @@ index 7e6027aa..31db6971 100644
          this.onlineMode = onlineMode;
      }
  
-@@ -650,6 +732,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -660,6 +741,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      {
          Preconditions.checkState( thisState == State.USERNAME, "Can only set uuid while state is username" );
          Preconditions.checkState( !onlineMode, "Can only set uuid when online mode is false" );
@@ -1587,5 +1586,5 @@ index fd0dabcf..c223a829 100644
      public Unsafe unsafe()
      {
 -- 
-2.30.1
+2.31.1
 

@@ -1,29 +1,30 @@
-From 7be46a93aa1d4f56fd70a0374970783924d393ac Mon Sep 17 00:00:00 2001
+From 5ed7475fcd95c64800ca5563457dbf299d56a4ef Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 02:56:06 +0200
 Subject: [PATCH] Branding
 
 
 diff --git a/api/pom.xml b/api/pom.xml
-index 10db38b7..4f1786d0 100644
+index ca1ed881..54628c14 100644
 --- a/api/pom.xml
 +++ b/api/pom.xml
-@@ -4,42 +4,41 @@
+@@ -4,42 +4,42 @@
      <modelVersion>4.0.0</modelVersion>
  
      <parent>
 -        <groupId>io.github.waterfallmc</groupId>
 -        <artifactId>waterfall-parent</artifactId>
++
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-api</artifactId>
 +    <artifactId>waterdrop-api</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-API</name>
@@ -64,7 +65,7 @@ index 10db38b7..4f1786d0 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/bootstrap/pom.xml b/bootstrap/pom.xml
-index 0a890393..ef62e727 100644
+index 37c0880c..180d3975 100644
 --- a/bootstrap/pom.xml
 +++ b/bootstrap/pom.xml
 @@ -4,19 +4,18 @@
@@ -75,14 +76,14 @@ index 0a890393..ef62e727 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-bootstrap</artifactId>
 +    <artifactId>waterdrop-bootstrap</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Bootstrap</name>
@@ -112,7 +113,7 @@ index 0a890393..ef62e727 100644
              <plugin>
                  <groupId>org.apache.maven.plugins</groupId>
 diff --git a/chat/pom.xml b/chat/pom.xml
-index 8523d99a..dfc31e81 100644
+index 85309233..4c27d4cb 100644
 --- a/chat/pom.xml
 +++ b/chat/pom.xml
 @@ -4,19 +4,18 @@
@@ -123,14 +124,14 @@ index 8523d99a..dfc31e81 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-chat</artifactId>
 +    <artifactId>waterdrop-chat</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Chat</name>
@@ -141,7 +142,7 @@ index 8523d99a..dfc31e81 100644
      <dependencies>
          <dependency>
 diff --git a/config/pom.xml b/config/pom.xml
-index 099a4643..b2ecdc41 100644
+index 38db2292..7b5ee540 100644
 --- a/config/pom.xml
 +++ b/config/pom.xml
 @@ -4,19 +4,18 @@
@@ -152,14 +153,14 @@ index 099a4643..b2ecdc41 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-config</artifactId>
 +    <artifactId>waterdrop-config</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Config</name>
@@ -170,7 +171,7 @@ index 099a4643..b2ecdc41 100644
      <dependencies>
          <dependency>
 diff --git a/event/pom.xml b/event/pom.xml
-index f4f7fdb0..e708f3a3 100644
+index 82a411b0..d5977a0f 100644
 --- a/event/pom.xml
 +++ b/event/pom.xml
 @@ -4,17 +4,16 @@
@@ -181,14 +182,14 @@ index f4f7fdb0..e708f3a3 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-event</artifactId>
 +    <artifactId>waterdrop-event</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Event</name>
@@ -197,7 +198,7 @@ index f4f7fdb0..e708f3a3 100644
 +    <description>Generic java event dispatching API intended for use with Waterdrop.</description>
  </project>
 diff --git a/log/pom.xml b/log/pom.xml
-index 93bd4bcc..c85c23cc 100644
+index 646dbfae..b486a990 100644
 --- a/log/pom.xml
 +++ b/log/pom.xml
 @@ -4,19 +4,18 @@
@@ -208,14 +209,14 @@ index 93bd4bcc..c85c23cc 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-log</artifactId>
 +    <artifactId>waterdrop-log</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Log</name>
@@ -237,7 +238,7 @@ index 93bd4bcc..c85c23cc 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/log4j/pom.xml b/log4j/pom.xml
-index 1cd12d6a..a633191c 100644
+index 51187fd1..ec126159 100644
 --- a/log4j/pom.xml
 +++ b/log4j/pom.xml
 @@ -3,19 +3,18 @@
@@ -248,14 +249,14 @@ index 1cd12d6a..a633191c 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-log4j</artifactId>
 +    <artifactId>waterdrop-log4j</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Log</name>
@@ -264,9 +265,9 @@ index 1cd12d6a..a633191c 100644
 +    <description>Simplistic and performant Log4j2 based logger and console API designed for use with Waterdrop and Minecraft related applications.</description>
  
      <properties>
-         <log4j2.version>2.12.0</log4j2.version>
+         <log4j2.version>2.14.0</log4j2.version>
 diff --git a/module/cmd-alert/pom.xml b/module/cmd-alert/pom.xml
-index 8eea364f..72d5c356 100644
+index 472314c2..75b72ac4 100644
 --- a/module/cmd-alert/pom.xml
 +++ b/module/cmd-alert/pom.xml
 @@ -4,14 +4,13 @@
@@ -277,18 +278,18 @@ index 8eea364f..72d5c356 100644
 -        <artifactId>waterfall-module</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-module</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-module-cmd-alert</artifactId>
 +    <artifactId>waterdrop-module-cmd-alert</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 diff --git a/module/cmd-find/pom.xml b/module/cmd-find/pom.xml
-index 9a2eb779..c993e6f7 100644
+index de8faee0..8ff77142 100644
 --- a/module/cmd-find/pom.xml
 +++ b/module/cmd-find/pom.xml
 @@ -4,14 +4,13 @@
@@ -299,18 +300,18 @@ index 9a2eb779..c993e6f7 100644
 -        <artifactId>waterfall-module</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-module</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-module-cmd-find</artifactId>
 +    <artifactId>waterdrop-module-cmd-find</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 diff --git a/module/cmd-list/pom.xml b/module/cmd-list/pom.xml
-index 57b0cdd8..19b55790 100644
+index 0cab9a7a..98d5d096 100644
 --- a/module/cmd-list/pom.xml
 +++ b/module/cmd-list/pom.xml
 @@ -4,14 +4,13 @@
@@ -321,18 +322,18 @@ index 57b0cdd8..19b55790 100644
 -        <artifactId>waterfall-module</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-module</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-module-cmd-list</artifactId>
 +    <artifactId>waterdrop-module-cmd-list</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 diff --git a/module/cmd-send/pom.xml b/module/cmd-send/pom.xml
-index 990c0a6d..43107508 100644
+index 240c9548..0bcd7442 100644
 --- a/module/cmd-send/pom.xml
 +++ b/module/cmd-send/pom.xml
 @@ -4,14 +4,13 @@
@@ -343,18 +344,18 @@ index 990c0a6d..43107508 100644
 -        <artifactId>waterfall-module</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-module</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-module-cmd-send</artifactId>
 +    <artifactId>waterdrop-module-cmd-send</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 diff --git a/module/cmd-server/pom.xml b/module/cmd-server/pom.xml
-index 1b4e0455..fab760c4 100644
+index 4c13d517..1a302f9d 100644
 --- a/module/cmd-server/pom.xml
 +++ b/module/cmd-server/pom.xml
 @@ -4,14 +4,13 @@
@@ -365,18 +366,18 @@ index 1b4e0455..fab760c4 100644
 -        <artifactId>waterfall-module</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-module</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-module-cmd-server</artifactId>
 +    <artifactId>waterdrop-module-cmd-server</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 diff --git a/module/pom.xml b/module/pom.xml
-index 0b9fc4aa..5820d428 100644
+index c9849b6c..5790eb94 100644
 --- a/module/pom.xml
 +++ b/module/pom.xml
 @@ -4,19 +4,18 @@
@@ -387,14 +388,14 @@ index 0b9fc4aa..5820d428 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-module</artifactId>
 +    <artifactId>waterdrop-module</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>pom</packaging>
  
 -    <name>Waterfall Modules</name>
@@ -424,7 +425,7 @@ index 0b9fc4aa..5820d428 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/module/reconnect-yaml/pom.xml b/module/reconnect-yaml/pom.xml
-index 0d3a3b70..0c106930 100644
+index 45910b0e..a27106e2 100644
 --- a/module/reconnect-yaml/pom.xml
 +++ b/module/reconnect-yaml/pom.xml
 @@ -4,14 +4,13 @@
@@ -435,18 +436,18 @@ index 0d3a3b70..0c106930 100644
 -        <artifactId>waterfall-module</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-module</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-module-reconnect-yaml</artifactId>
 +    <artifactId>waterdrop-module-reconnect-yaml</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 diff --git a/native/pom.xml b/native/pom.xml
-index ec465dd3..ecd02947 100644
+index db15febb..9eb9f312 100644
 --- a/native/pom.xml
 +++ b/native/pom.xml
 @@ -4,19 +4,18 @@
@@ -455,16 +456,17 @@ index ec465dd3..ecd02947 100644
      <parent>
 -        <groupId>io.github.waterfallmc</groupId>
 -        <artifactId>waterfall-parent</artifactId>
+-        <version>1.16-R0.5-SNAPSHOT</version>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
++        <version>1.16-R0.4-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-native</artifactId>
 +    <artifactId>waterdrop-native</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Native</name>
@@ -475,7 +477,7 @@ index ec465dd3..ecd02947 100644
      <dependencies>
          <dependency>
 diff --git a/pom.xml b/pom.xml
-index fd03c640..cae7caf5 100644
+index 56bb4a7a..1107db34 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -4,25 +4,20 @@
@@ -493,7 +495,7 @@ index fd03c640..cae7caf5 100644
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-parent</artifactId>
 +    <artifactId>waterdrop-parent</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>pom</packaging>
  
 -    <name>Waterfall-Parent</name>
@@ -532,7 +534,7 @@ index fd03c640..cae7caf5 100644
          </developer>
      </developers>
  
-@@ -64,31 +47,6 @@
+@@ -64,27 +47,6 @@
          <module>native</module>
      </modules>
  
@@ -545,10 +547,6 @@ index fd03c640..cae7caf5 100644
 -        <system>GitHub</system>
 -        <url>https://github.com/PaperMC/Waterfall/issues</url>
 -    </issueManagement>
--    <ciManagement>
--        <system>jenkins</system>
--        <url>https://papermc.io/ci/job/Waterfall/</url>
--    </ciManagement>
 -
 -    <distributionManagement>
 -        <repository>
@@ -563,8 +561,8 @@ index fd03c640..cae7caf5 100644
 -
      <properties>
          <build.number>unknown</build.number>
-         <netty.version>4.1.53.Final</netty.version>
-@@ -340,8 +298,8 @@
+         <lombok.version>1.18.20</lombok.version>
+@@ -395,8 +357,8 @@
                                  </goals>
                                  <inherited>false</inherited>
                                  <configuration>
@@ -576,7 +574,7 @@ index fd03c640..cae7caf5 100644
                                          api/target/generated-sources/delombok;
                                          chat/target/generated-sources/delombok
 diff --git a/protocol/pom.xml b/protocol/pom.xml
-index 8571f378..679e7182 100644
+index 402266ca..1b77c8fd 100644
 --- a/protocol/pom.xml
 +++ b/protocol/pom.xml
 @@ -4,19 +4,18 @@
@@ -587,14 +585,14 @@ index 8571f378..679e7182 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-protocol</artifactId>
 +    <artifactId>waterdrop-protocol</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Protocol</name>
@@ -616,7 +614,7 @@ index 8571f378..679e7182 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/proxy/pom.xml b/proxy/pom.xml
-index f0c36550..7f1172b6 100644
+index ca1fc13b..2ee726a5 100644
 --- a/proxy/pom.xml
 +++ b/proxy/pom.xml
 @@ -4,18 +4,17 @@
@@ -627,14 +625,14 @@ index f0c36550..7f1172b6 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-proxy</artifactId>
 +    <artifactId>waterdrop-proxy</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Proxy</name>
@@ -642,7 +640,7 @@ index f0c36550..7f1172b6 100644
      <description>Proxy component of the Elastic Portal Suite</description>
  
      <properties>
-@@ -58,32 +57,32 @@
+@@ -64,32 +63,32 @@
              <scope>compile</scope>
          </dependency>
          <dependency>
@@ -699,7 +697,7 @@ index 2938f2f1..c336c42d 100644
  
      @Override
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
-index dc2c584d..d565557f 100644
+index e830198d..d3ccefe5 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
 @@ -58,7 +58,7 @@ public class BungeeCordLauncher
@@ -712,20 +710,27 @@ index dc2c584d..d565557f 100644
  
          if ( !options.has( "noconsole" ) )
 diff --git a/proxy/src/main/java/net/md_5/bungee/module/JenkinsModuleSource.java b/proxy/src/main/java/net/md_5/bungee/module/JenkinsModuleSource.java
-index 9b20d0df..87a88c14 100644
+index 338c30d3..87a88c14 100644
 --- a/proxy/src/main/java/net/md_5/bungee/module/JenkinsModuleSource.java
 +++ b/proxy/src/main/java/net/md_5/bungee/module/JenkinsModuleSource.java
-@@ -18,7 +18,7 @@ public class JenkinsModuleSource implements ModuleSource
+@@ -18,14 +18,7 @@ public class JenkinsModuleSource implements ModuleSource
          System.out.println( "Attempting to Jenkins download module " + module.getName() + " v" + version.getBuild() );
          try
          {
--            URL website = new URL( "https://papermc.io/ci/job/Waterfall/" + version.getBuild() + "/artifact/Waterfall-Proxy/module/" + module.getName().replace( '_', '-' ) + "/target/" + module.getName() + ".jar" );
+-            final String url = String.format(
+-                "https://papermc.io/api/v2/projects/%1$s/versions/%2$s/builds/%3$s/downloads/%4$s-%2$s-%3$s.jar",
+-                "waterfall",
+-                net.md_5.bungee.api.ProxyServer.getInstance().getVersion().split(":")[2].split("-")[0],
+-                version.getBuild(),
+-                module.getName()
+-            );
+-            URL website = new URL( url );
 +            URL website = new URL( "https://jenkins.atlanti.se/job/Waterdrop/" + version.getBuild() + "/artifact/Waterdrop-Proxy/module/" + module.getName().replace( '_', '-' ) + "/target/" + module.getName() + ".jar" );
              URLConnection con = website.openConnection();
              // 15 second timeout at various stages
              con.setConnectTimeout( 15000 );
 diff --git a/query/pom.xml b/query/pom.xml
-index 1c845a6d..afa90951 100644
+index 8ce88f4a..c9893dce 100644
 --- a/query/pom.xml
 +++ b/query/pom.xml
 @@ -4,19 +4,18 @@
@@ -736,14 +741,14 @@ index 1c845a6d..afa90951 100644
 -        <artifactId>waterfall-parent</artifactId>
 +        <groupId>fr.thekinrar.waterdrop</groupId>
 +        <artifactId>waterdrop-parent</artifactId>
-         <version>1.16-R0.4-SNAPSHOT</version>
+         <version>1.16-R0.5-SNAPSHOT</version>
          <relativePath>../pom.xml</relativePath>
      </parent>
  
 -    <groupId>io.github.waterfallmc</groupId>
 -    <artifactId>waterfall-query</artifactId>
 +    <artifactId>waterdrop-query</artifactId>
-     <version>1.16-R0.4-SNAPSHOT</version>
+     <version>1.16-R0.5-SNAPSHOT</version>
      <packaging>jar</packaging>
  
 -    <name>Waterfall-Query</name>
@@ -765,5 +770,5 @@ index 1c845a6d..afa90951 100644
              <scope>compile</scope>
          </dependency>
 -- 
-2.28.0
+2.31.1
 
