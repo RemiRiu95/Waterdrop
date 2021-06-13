@@ -1,14 +1,14 @@
-From b361c6a0b116cb05157ed4237fff9c23c21d8ee9 Mon Sep 17 00:00:00 2001
+From 34576e2a2fc13afa7eeeac5173436ac3b658782a Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:40:52 +0200
 Subject: [PATCH] Don't sleep for 10 seconds when build is "outdated"
 
 
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
-index d3ccefe5..d3cd1eeb 100644
+index f38d37d0..464c8f35 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
-@@ -51,8 +51,11 @@ public class BungeeCordLauncher
+@@ -69,8 +69,11 @@ public class BungeeCordLauncher
                  System.err.println( "*** Hey! This build is potentially outdated :( ***" );
                  System.err.println( "*** Please check for a new build from https://papermc.io/downloads ***" );
                  System.err.println( "*** Should this build be outdated, you will get NO support for it. ***" );
@@ -23,5 +23,5 @@ index d3ccefe5..d3cd1eeb 100644
          }
  
 -- 
-2.31.1
+2.32.0
 

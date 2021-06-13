@@ -1,4 +1,4 @@
-From 5b798f22a8f66ba85aad74fc85c2d747c9988834 Mon Sep 17 00:00:00 2001
+From c795344aa67bc8731907f3264a549a602a26ed9d Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -166,10 +166,10 @@ index 90031156..b2bf084a 100644
  
          if ( !command.hasPermission( sender ) )
 diff --git a/proxy/pom.xml b/proxy/pom.xml
-index 2ee726a5..7e502407 100644
+index 57b5d6a2..32a2f18b 100644
 --- a/proxy/pom.xml
 +++ b/proxy/pom.xml
-@@ -142,6 +142,30 @@
+@@ -149,6 +149,30 @@
              <scope>runtime</scope>
          </dependency>
          <!-- Waterfall end -->
@@ -1164,7 +1164,7 @@ index 527f310e..3f6aa09d 100644
 +    }
  }
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-index c336c42d..42154e21 100644
+index 5f507660..e07db4e5 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 @@ -10,6 +10,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -1207,7 +1207,7 @@ index c336c42d..42154e21 100644
      }
  
      public static BungeeCord getInstance()
-@@ -229,6 +241,11 @@ public class BungeeCord extends ProxyServer
+@@ -230,6 +242,11 @@ public class BungeeCord extends ProxyServer
          getPluginManager().registerCommand( null, new CommandIP() );
          getPluginManager().registerCommand( null, new CommandBungee() );
          getPluginManager().registerCommand( null, new CommandPerms() );
@@ -1219,7 +1219,7 @@ index c336c42d..42154e21 100644
  
          if ( !Boolean.getBoolean( "net.md_5.bungee.native.disable" ) )
          {
-@@ -284,6 +301,17 @@ public class BungeeCord extends ProxyServer
+@@ -285,6 +302,17 @@ public class BungeeCord extends ProxyServer
              registerChannel( ForgeConstants.FORGE_REGISTER );
          }
  
@@ -1237,7 +1237,7 @@ index c336c42d..42154e21 100644
          isRunning = true;
  
          pluginManager.enablePlugins();
-@@ -487,6 +515,9 @@ public class BungeeCord extends ProxyServer
+@@ -488,6 +516,9 @@ public class BungeeCord extends ProxyServer
              plugin.getExecutorService().shutdownNow();
          }
  
@@ -1248,10 +1248,10 @@ index c336c42d..42154e21 100644
                  bossEventLoopGroup.shutdownGracefully();
                  workerEventLoopGroup.shutdownGracefully();
 diff --git a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
-index 2d9c0cda..d4afc12b 100644
+index a5efb0af..7609c423 100644
 --- a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
 +++ b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
-@@ -227,6 +227,7 @@ public class ServerConnector extends PacketHandler
+@@ -228,6 +228,7 @@ public class ServerConnector extends PacketHandler
  
          for ( PluginMessage message : user.getPendingConnection().getRelayMessages() )
          {
@@ -1260,7 +1260,7 @@ index 2d9c0cda..d4afc12b 100644
          }
  
 diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
-index 7ec119ea..82b499aa 100644
+index 6d974d74..f52ac8cf 100644
 --- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 +++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 @@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
@@ -1304,8 +1304,8 @@ index 7ec119ea..82b499aa 100644
 +
      public void init()
      {
-         this.entityRewrite = EntityMap.getEntityMap( getPendingConnection().getVersion() );
-@@ -759,4 +787,8 @@ public final class UserConnection implements ProxiedPlayer
+         if ( getPendingConnection().getVersion() < ProtocolConstants.MINECRAFT_1_16_2 || !bungee.getConfig().isIpForward() )
+@@ -762,4 +790,8 @@ public final class UserConnection implements ProxiedPlayer
          return entityRewrite == net.md_5.bungee.entitymap.EntityMap_Dummy.INSTANCE;
      }
      // Waterfall end
@@ -1315,7 +1315,7 @@ index 7ec119ea..82b499aa 100644
 +    }
  }
 diff --git a/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java b/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
-index 65121ba2..57c999bf 100644
+index 0644b8cd..f5ba3ed3 100644
 --- a/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
 +++ b/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
 @@ -103,6 +103,7 @@ public class YamlConfig implements ConfigurationAdapter
@@ -1327,7 +1327,7 @@ index 65121ba2..57c999bf 100644
              set( "permissions.admin", Arrays.asList( new String[]
              {
 diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
-index b7ecd828..9ff75104 100644
+index 08c49fcc..d04b2db7 100644
 --- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 +++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 @@ -14,6 +14,10 @@ import java.util.logging.Level;
@@ -1586,5 +1586,5 @@ index fd0dabcf..c223a829 100644
      public Unsafe unsafe()
      {
 -- 
-2.31.1
+2.32.0
 
