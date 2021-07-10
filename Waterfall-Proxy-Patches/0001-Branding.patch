@@ -1,4 +1,4 @@
-From 9835ddbf1d440c7f03d24b21b19f12a0a6937fdf Mon Sep 17 00:00:00 2001
+From bc23f9e2ebedc80f2c9c0011737c252ce747a7f9 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 02:56:06 +0200
 Subject: [PATCH] Branding
@@ -475,7 +475,7 @@ index 652a869d..46940fab 100644
      <dependencies>
          <dependency>
 diff --git a/pom.xml b/pom.xml
-index fd71cdbd..2b87259b 100644
+index 8d86e36c..a3533a2c 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -4,25 +4,20 @@
@@ -560,7 +560,7 @@ index fd71cdbd..2b87259b 100644
      <properties>
          <build.number>unknown</build.number>
          <lombok.version>1.18.20</lombok.version>
-@@ -396,8 +358,8 @@
+@@ -397,8 +359,8 @@
                                  </goals>
                                  <inherited>false</inherited>
                                  <configuration>
@@ -682,7 +682,7 @@ index c3a2eeb6..57b5d6a2 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-index c09f5b4c..5f507660 100644
+index 07d74c67..f20716bd 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 @@ -539,7 +539,7 @@ public class BungeeCord extends ProxyServer
@@ -695,10 +695,10 @@ index c09f5b4c..5f507660 100644
  
      @Override
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
-index 35680528..f38d37d0 100644
+index 0db3d76a..dd8181c4 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCordLauncher.java
-@@ -76,7 +76,7 @@ public class BungeeCordLauncher
+@@ -63,7 +63,7 @@ public class BungeeCordLauncher
  
          BungeeCord bungee = new BungeeCord();
          ProxyServer.setInstance( bungee );
