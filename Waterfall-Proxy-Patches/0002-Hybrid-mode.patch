@@ -1,4 +1,4 @@
-From 140048d235c192271dacf5c3dec73744847ec635 Mon Sep 17 00:00:00 2001
+From e3548be319db86f66a3b7f3c1c329790eb28b37a Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 03:05:46 +0200
 Subject: [PATCH] Hybrid mode
@@ -60,14 +60,13 @@ index 00000000..ee4b9441
 +    boolean verifyPassword(String username, String password);
 +}
 diff --git a/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java b/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
-index d69463f0..f6fcfce1 100644
+index 469fe0e1..1acecffd 100644
 --- a/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
 +++ b/api/src/main/java/net/md_5/bungee/api/ProxyConfig.java
-@@ -261,4 +261,12 @@ public interface ProxyConfig
-      * @return {@code true} if tablist rewriting is disabled, {@code false} otherwise
+@@ -275,4 +275,11 @@ public interface ProxyConfig
+      * @return the configured limit
       */
-     boolean isDisableTabListRewrite();
-+
+     int getPluginChannelNameLimit();
 +    String getDatabaseUrl();
 +
 +    String getDatabaseUsername();
@@ -97,7 +96,7 @@ index a4011335..4fda8f97 100644
 +
  }
 diff --git a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
-index 3dc32801..3dee31e3 100644
+index 684eb883..c01f39e4 100644
 --- a/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
 +++ b/api/src/main/java/net/md_5/bungee/api/connection/ProxiedPlayer.java
 @@ -3,6 +3,8 @@ package net.md_5.bungee.api.connection;
@@ -166,10 +165,10 @@ index 90031156..b2bf084a 100644
  
          if ( !command.hasPermission( sender ) )
 diff --git a/proxy/pom.xml b/proxy/pom.xml
-index 57b5d6a2..32a2f18b 100644
+index 59e354d5..213cf4e2 100644
 --- a/proxy/pom.xml
 +++ b/proxy/pom.xml
-@@ -149,6 +149,30 @@
+@@ -156,6 +156,30 @@
              <scope>runtime</scope>
          </dependency>
          <!-- Waterfall end -->
@@ -199,7 +198,7 @@ index 57b5d6a2..32a2f18b 100644
 +        <!-- Waterdrop end -->
      </dependencies>
  
-     <build>
+     <!-- Waterfall start - copy license files into jar -->
 diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/AutoLoginReason.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/AutoLoginReason.java
 new file mode 100644
 index 00000000..770682a6
@@ -1101,7 +1100,7 @@ index 00000000..3b04b682
 +    }
 +}
 diff --git a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
-index 527f310e..3f6aa09d 100644
+index da0efa36..27e87db6 100644
 --- a/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
 +++ b/proxy/src/main/java/io/github/waterfallmc/waterfall/conf/WaterfallConfiguration.java
 @@ -1,6 +1,7 @@
@@ -1112,9 +1111,9 @@ index 527f310e..3f6aa09d 100644
  import net.md_5.bungee.conf.Configuration;
  import net.md_5.bungee.conf.YamlConfig;
  import net.md_5.bungee.protocol.ProtocolConstants;
-@@ -45,6 +46,12 @@ public class WaterfallConfiguration extends Configuration {
-     private boolean disableEntityMetadataRewrite = false;
-     private boolean disableTabListRewrite = false;
+@@ -62,6 +63,12 @@ public class WaterfallConfiguration extends Configuration {
+      */
+     private int pluginChannelNameLimit = 128;
  
 +    private String databaseUrl = "";
 +    private String databaseUsername = "";
@@ -1125,10 +1124,10 @@ index 527f310e..3f6aa09d 100644
      @Override
      public void load() {
          super.load();
-@@ -58,6 +65,12 @@ public class WaterfallConfiguration extends Configuration {
-         disableModernTabLimiter = config.getBoolean("disable_modern_tab_limiter", disableModernTabLimiter);
-         disableEntityMetadataRewrite = config.getBoolean("disable_entity_metadata_rewrite", disableEntityMetadataRewrite);
+@@ -77,6 +84,12 @@ public class WaterfallConfiguration extends Configuration {
          disableTabListRewrite = config.getBoolean("disable_tab_list_rewrite", disableTabListRewrite);
+         pluginChannelLimit = config.getInt("registered_plugin_channels_limit", pluginChannelLimit);
+         pluginChannelNameLimit = config.getInt("plugin_channel_name_limit", pluginChannelNameLimit);
 +
 +        databaseUrl = config.getString("database.url", databaseUrl);
 +        databaseUsername = config.getString("database.username", databaseUsername);
@@ -1138,12 +1137,11 @@ index 527f310e..3f6aa09d 100644
      }
  
      @Override
-@@ -94,4 +107,24 @@ public class WaterfallConfiguration extends Configuration {
-     public boolean isDisableTabListRewrite() {
-         return disableTabListRewrite;
+@@ -123,4 +136,23 @@ public class WaterfallConfiguration extends Configuration {
+     public int getPluginChannelNameLimit() {
+         return pluginChannelNameLimit;
      }
 +
-+    @Override
 +    public String getDatabaseUrl() {
 +        return databaseUrl;
 +    }
@@ -1164,7 +1162,7 @@ index 527f310e..3f6aa09d 100644
 +    }
  }
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-index f20716bd..d6047f8d 100644
+index 0ebec3cf..59c3ea30 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 @@ -10,6 +10,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -1248,19 +1246,19 @@ index f20716bd..d6047f8d 100644
                  bossEventLoopGroup.shutdownGracefully();
                  workerEventLoopGroup.shutdownGracefully();
 diff --git a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
-index a5efb0af..7609c423 100644
+index 8181d76b..9f7d94e6 100644
 --- a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
 +++ b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
-@@ -228,6 +228,7 @@ public class ServerConnector extends PacketHandler
- 
-         for ( PluginMessage message : user.getPendingConnection().getRelayMessages() )
+@@ -231,6 +231,7 @@ public class ServerConnector extends PacketHandler
+         PluginMessage brandMessage = user.getPendingConnection().getBrandMessage();
+         if ( brandMessage != null )
          {
-+            BungeeCord.getInstance().getLogger().info("writing pm " + message.getTag());
-             ch.write( message );
++            BungeeCord.getInstance().getLogger().info("writing pm " + brandMessage.getTag());
+             ch.write( brandMessage );
          }
  
 diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
-index fc98b4b1..172ffb93 100644
+index b44d13e5..4f7ba197 100644
 --- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 +++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
 @@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
@@ -1304,8 +1302,8 @@ index fc98b4b1..172ffb93 100644
 +
      public void init()
      {
-         if ( getPendingConnection().getVersion() < ProtocolConstants.MINECRAFT_1_16_2 || !bungee.getConfig().isIpForward() )
-@@ -774,4 +802,8 @@ public final class UserConnection implements ProxiedPlayer
+         this.entityRewrite = EntityMap.getEntityMap( getPendingConnection().getVersion() );
+@@ -786,4 +814,8 @@ public final class UserConnection implements ProxiedPlayer
          return entityRewrite == net.md_5.bungee.entitymap.EntityMap_Dummy.INSTANCE;
      }
      // Waterfall end
@@ -1315,7 +1313,7 @@ index fc98b4b1..172ffb93 100644
 +    }
  }
 diff --git a/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java b/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
-index 0644b8cd..f5ba3ed3 100644
+index 0dd69778..e087ccbf 100644
 --- a/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
 +++ b/proxy/src/main/java/net/md_5/bungee/conf/YamlConfig.java
 @@ -103,6 +103,7 @@ public class YamlConfig implements ConfigurationAdapter
@@ -1327,10 +1325,10 @@ index 0644b8cd..f5ba3ed3 100644
              set( "permissions.admin", Arrays.asList( new String[]
              {
 diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
-index 0f1716c0..481b4f91 100644
+index 975b6996..047829ad 100644
 --- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 +++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
-@@ -14,6 +14,10 @@ import java.util.logging.Level;
+@@ -18,6 +18,10 @@ import java.util.logging.Level;
  import javax.crypto.SecretKey;
  import javax.crypto.spec.SecretKeySpec;
  
@@ -1341,7 +1339,7 @@ index 0f1716c0..481b4f91 100644
  import lombok.Getter;
  import lombok.RequiredArgsConstructor;
  import net.md_5.bungee.BungeeCord;
-@@ -97,6 +101,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -103,6 +107,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      @Getter
      private boolean onlineMode = BungeeCord.getInstance().config.isOnlineMode();
      @Getter
@@ -1350,7 +1348,7 @@ index 0f1716c0..481b4f91 100644
      private InetSocketAddress virtualHost;
      private String name;
      @Getter
-@@ -109,6 +115,13 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -115,6 +121,13 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      private boolean legacy;
      @Getter
      private String extraDataInHandshake = "";
@@ -1364,7 +1362,7 @@ index 0f1716c0..481b4f91 100644
  
      @Override
      public boolean shouldHandle(PacketWrapper packet) throws Exception
-@@ -133,6 +146,14 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -139,6 +152,14 @@ public class InitialHandler extends PacketHandler implements PendingConnection
          this.ch = channel;
      }
  
@@ -1379,7 +1377,7 @@ index 0f1716c0..481b4f91 100644
      @Override
      public void exception(Throwable t) throws Exception
      {
-@@ -380,6 +401,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -430,6 +451,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
  
          // If offline mode and they are already on, don't allow connect
          // We can just check by UUID here as names are based on UUID
@@ -1387,7 +1385,7 @@ index 0f1716c0..481b4f91 100644
          if ( !isOnlineMode() && bungee.getPlayer( getUniqueId() ) != null )
          {
              disconnect( bungee.getTranslation( "already_connected_proxy" ) );
-@@ -401,11 +423,32 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -452,13 +474,33 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                  {
                      return;
                  }
@@ -1407,9 +1405,11 @@ index 0f1716c0..481b4f91 100644
 +
 +                if ( encryption )
                  {
+                     thisState = State.ENCRYPT;
                      unsafe().sendPacket( request = EncryptionUtil.encryptRequest() );
                  } else
                  {
+                     thisState = State.FINISHING;
 +                    hybridProfile = hybridEngine.getOfflinePlayerProfile(getName());
 +                    hybridProfile.setInvalidSessionWorkaround(invalidSessionWorkaround);
 +
@@ -1417,11 +1417,10 @@ index 0f1716c0..481b4f91 100644
 +                    hybridEngine.getLogger().info("UUID of player " + getName() + " is " + hybridProfile.getId());
 +
 +                    uniqueId = hybridProfile.getId();
-+
                      finish();
                  }
-                 thisState = State.ENCRYPT;
-@@ -452,9 +495,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+             }
+@@ -506,9 +548,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
  
          Callback<String> handler = new Callback<String>()
          {
@@ -1434,7 +1433,7 @@ index 0f1716c0..481b4f91 100644
                  if ( error == null )
                  {
                      LoginResult obj = BungeeCord.getInstance().gson.fromJson( result, LoginResult.class );
-@@ -463,6 +509,27 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -517,6 +562,27 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                          loginProfile = obj;
                          name = obj.getName();
                          uniqueId = Util.getUUID( obj.getId() );
@@ -1462,16 +1461,16 @@ index 0f1716c0..481b4f91 100644
                          finish();
                          return;
                      }
-@@ -480,7 +547,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -560,7 +626,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+             }
+         }
  
-     private void finish()
-     {
 -        if ( isOnlineMode() )
 +        if ( !isHybridMode() && isOnlineMode() )
          {
              // Check for multiple connections
              // We have to check for the old name first
-@@ -542,6 +609,19 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -617,6 +683,20 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                              userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
                              userCon.init();
  
@@ -1480,7 +1479,8 @@ index 0f1716c0..481b4f91 100644
 +                                hybridProfile.authenticate(userCon, getAddress());
 +
 +                                if(userCon.isAuthenticated()) {
-+                                    relayMessages.add(userCon.getAuthenticatePluginMessage());
++                                    System.out.println("El famoso relayMessages");
++                                    //relayMessages.add(userCon.getAuthenticatePluginMessage());
 +                                }
 +
 +                                userCon.setLateAuth(true);
@@ -1488,10 +1488,10 @@ index 0f1716c0..481b4f91 100644
 +                                userCon.setAuthenticated(true);
 +                            }
 +
-                             unsafe.sendPacket( new LoginSuccess( getUniqueId(), getName() ) );
+                             unsafe.sendPacket( new LoginSuccess( getUniqueId(), getName(), ( loginProfile == null ) ? null : loginProfile.getProperties() ) );
                              ch.setProtocol( Protocol.GAME );
  
-@@ -646,6 +726,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -719,6 +799,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      public void setOnlineMode(boolean onlineMode)
      {
          Preconditions.checkState( thisState == State.USERNAME, "Can only set online mode status whilst state is username" );
@@ -1499,7 +1499,7 @@ index 0f1716c0..481b4f91 100644
          this.onlineMode = onlineMode;
      }
  
-@@ -654,6 +735,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -727,6 +808,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
      {
          Preconditions.checkState( thisState == State.USERNAME, "Can only set uuid while state is username" );
          Preconditions.checkState( !onlineMode, "Can only set uuid when online mode is false" );
@@ -1508,10 +1508,10 @@ index 0f1716c0..481b4f91 100644
      }
  
 diff --git a/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java b/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
-index d93d8851..4a6bdf2b 100644
+index 6240204e..6b9fe318 100644
 --- a/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
 +++ b/proxy/src/main/java/net/md_5/bungee/connection/UpstreamBridge.java
-@@ -248,6 +248,11 @@ public class UpstreamBridge extends PacketHandler
+@@ -281,6 +281,11 @@ public class UpstreamBridge extends PacketHandler
              throw CancelSendSignal.INSTANCE;
          }
  
@@ -1586,5 +1586,5 @@ index fd0dabcf..c223a829 100644
      public Unsafe unsafe()
      {
 -- 
-2.32.0
+2.36.0.windows.1
 
