@@ -1,0 +1,22 @@
+From 1099d81d4faadfa7f87e29743bd313b2ae781a1f Mon Sep 17 00:00:00 2001
+From: Remi <remi.riu95@gmail.com>
+Date: Fri, 28 Oct 2022 00:42:08 +0200
+Subject: [PATCH] On commente getRelayMessages
+
+
+diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+index 4f7ba197..eacda8db 100644
+--- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
++++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+@@ -172,7 +172,7 @@ public final class UserConnection implements ProxiedPlayer
+     public void setAuthenticated(boolean authenticated) {
+         if(!this.authenticated && authenticated && lateAuth) {
+             server.unsafe().sendPacket(getAuthenticatePluginMessage());
+-            pendingConnection.getRelayMessages().add(getAuthenticatePluginMessage());
++            // pendingConnection.getRelayMessages().add(getAuthenticatePluginMessage());
+         }
+ 
+         this.authenticated = authenticated;
+-- 
+2.36.0.windows.1
+
