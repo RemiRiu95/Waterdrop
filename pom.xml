@@ -15,6 +15,7 @@
         <module>Waterdrop-Proxy</module>
     </modules>
 
+    <!--
     <scm>
         <connection>scm:git:git@git.atlanti.se:com:papyrus/waterdrop.git</connection>
         <developerConnection>scm:git:git@git.atlanti.se:papyrus/waterdrop.git</developerConnection>
@@ -35,6 +36,7 @@
             <url>https://maven.atlanti.se/repository/maven-papyrus/</url>
         </repository>
     </distributionManagement>
+    -->
 
     <build>
         <defaultGoal>clean install</defaultGoal>
