@@ -1,0 +1,31 @@
+From 8b8b8dbac0eed6c568a6d638519fa68300ab5654 Mon Sep 17 00:00:00 2001
+From: Remi <remi.riu95@gmail.com>
+Date: Sun, 6 Nov 2022 23:00:30 +0100
+Subject: [PATCH] Fix pom cmd_kick
+
+
+diff --git a/module/cmd-kick/pom.xml b/module/cmd-kick/pom.xml
+index 17d3dc71e..be05a4571 100644
+--- a/module/cmd-kick/pom.xml
++++ b/module/cmd-kick/pom.xml
+@@ -4,14 +4,13 @@
+     <modelVersion>4.0.0</modelVersion>
+ 
+     <parent>
+-        <groupId>io.github.waterfallmc</groupId>
+-        <artifactId>waterfall-module</artifactId>
++        <groupId>fr.thekinrar.waterdrop</groupId>
++        <artifactId>waterdrop-module</artifactId>
+         <version>1.19-R0.1-SNAPSHOT</version>
+         <relativePath>../pom.xml</relativePath>
+     </parent>
+ 
+-    <groupId>io.github.waterfallmc</groupId>
+-    <artifactId>waterfall-module-cmd-kick</artifactId>
++    <artifactId>waterdrop-module-cmd-kick</artifactId>
+     <version>1.19-R0.1-SNAPSHOT</version>
+     <packaging>jar</packaging>
+ 
+-- 
+2.36.0.windows.1
+
