@@ -1,0 +1,164 @@
+From 0ec5884f7cc33b8e277de5f5e4eb6a9f3bd99e95 Mon Sep 17 00:00:00 2001
+From: Remi <remi.riu95@gmail.com>
+Date: Fri, 11 Nov 2022 22:27:35 +0100
+Subject: [PATCH] =?UTF-8?q?Traduction=20de=20la=20plupart=20des=20messages?=
+ =?UTF-8?q?,=20dans=20le=20code,=20dans=20message.properties,=20et=20les?=
+ =?UTF-8?q?=20relances=20de=20login/register=20passent=20=C3=A0=2015s?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
+index 55881ca9c..bd60e533a 100644
+--- a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/WaterHybridProfile.java
+@@ -198,16 +198,17 @@ public class WaterHybridProfile implements HybridProfile, Runnable {
+     @SneakyThrows
+     @Override
+     public void run() {
+-        while(sendUnauthenticatedMessage())
+-            Thread.sleep(10000);
++        while(sendUnauthenticatedMessage()) {
++            Thread.sleep(15000);
++        }
+     }
+ 
+     @Override
+     public boolean sendUnauthenticatedMessage() {
+         if(loginRequested) {
+-            user.sendMessage("§eBienvenue ! §e§lConnecte-toi en utilisant /login <motDePasse>");
++            user.sendMessage("§2=> §eUtilise §l/l§e§n§nogin <motDePasse>§e pour te connecter.");
+         } else if(registrationRequested) {
+-            user.sendMessage("§eBienvenue ! §e§lEnregistre-toi en utilisant /register <motDePasse> <motDePasse>.");
++            user.sendMessage("§4=> §eEnregistre-toi en utilisant §n/register <motDePasse> <motDePasse>§e.");
+         } else {
+             return false;
+         }
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandChangePass.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandChangePass.java
+index 94fd2ad6f..aeea3c8e0 100644
+--- a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandChangePass.java
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandChangePass.java
+@@ -18,7 +18,7 @@ public class CommandChangePass extends Command {
+     public void execute(CommandSender sender, String[] args) {
+         if(BungeeCord.getInstance().getConfig().isHybridMode() && sender instanceof UserConnection) {
+             if(args.length != 3) {
+-                sender.sendMessage(new ComponentBuilder("Usage: /changepass <current password> <new password> <new password>").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Usage: /changepass <ancienMotDePasse> <nouveauMotDePasse> <nouveauMotDePasse>").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+@@ -35,21 +35,21 @@ public class CommandChangePass extends Command {
+             }
+ 
+             if(!profile.verifyPassword(args[0])) {
+-                sender.sendMessage(new ComponentBuilder("Invalid password.").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Mot de passe incorrect.").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+             if(!args[1].equals(args[2])) {
+-                sender.sendMessage(new ComponentBuilder("Passwords do not match.").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Les deux mots de passe ne correspondent pas.").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+             // No hard feelings please, args[2] will not be forgotten.
+             profile.setPassword(args[1]);
+ 
+-            sender.sendMessage(new ComponentBuilder("Password changed.").color(ChatColor.GREEN).create());
++            sender.sendMessage(new ComponentBuilder("Mot de passe mis à jour.").color(ChatColor.GREEN).create());
+         } else {
+-            sender.sendMessage(new ComponentBuilder("Command unavailable.").color(ChatColor.RED).create());
++            sender.sendMessage(new ComponentBuilder("Commande non-disponible.").color(ChatColor.RED).create());
+         }
+     }
+ }
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
+index 948eef086..974cce510 100644
+--- a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandLogin.java
+@@ -18,7 +18,7 @@ public class CommandLogin extends Command {
+     public void execute(CommandSender sender, String[] args) {
+         if(BungeeCord.getInstance().getConfig().isHybridMode() && sender instanceof UserConnection) {
+             if(args.length != 1) {
+-                sender.sendMessage(new ComponentBuilder("Usage: /login <password>").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Usage: /login <motDePasse>").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+@@ -30,14 +30,14 @@ public class CommandLogin extends Command {
+             }
+ 
+             if(profile.isLoggedIn()) {
+-                sender.sendMessage(new ComponentBuilder("Already logged in.").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Tu es déjà connecté(e).").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+             if(profile.login(args[0]))
+-                sender.sendMessage(new ComponentBuilder("Login successful.").color(ChatColor.GREEN).create());
++                sender.sendMessage(new ComponentBuilder("Connecté !").color(ChatColor.GREEN).create());
+             else
+-                sender.sendMessage(new ComponentBuilder("Invalid password.").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Mot de passe incorrect.").color(ChatColor.RED).create());
+         } else {
+             sender.sendMessage(new ComponentBuilder("Command unavailable.").color(ChatColor.RED).create());
+         }
+diff --git a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java
+index 3b04b682e..d48068f71 100644
+--- a/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java
++++ b/proxy/src/main/java/fr/thekinrar/waterdrop/hybrid/commands/CommandRegister.java
+@@ -18,25 +18,25 @@ public class CommandRegister extends Command {
+     public void execute(CommandSender sender, String[] args) {
+         if(BungeeCord.getInstance().getConfig().isHybridMode() && sender instanceof UserConnection) {
+             if(args.length != 2) {
+-                sender.sendMessage(new ComponentBuilder("Usage: /register <password> <password confirmation>").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Usage: /register <motDePasse> <motDePasse>").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+             WaterHybridProfile profile = ((UserConnection) sender).getHybridProfile();
+ 
+             if(profile.isRegistered()) {
+-                sender.sendMessage(new ComponentBuilder("Already registered.").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Tu es déjà enregistré(e).").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+             if(!args[0].equals(args[1])) {
+-                sender.sendMessage(new ComponentBuilder("Passwords do not match.").color(ChatColor.RED).create());
++                sender.sendMessage(new ComponentBuilder("Les deux mots de passe ne correspondent pas.").color(ChatColor.RED).create());
+                 return;
+             }
+ 
+             profile.register(args[0]);
+ 
+-            sender.sendMessage(new ComponentBuilder("Successfully registered.").color(ChatColor.GREEN).create());
++            sender.sendMessage(new ComponentBuilder("Enregistré et connecté !").color(ChatColor.GREEN).create());
+         } else {
+             sender.sendMessage(new ComponentBuilder("Command unavailable.").color(ChatColor.RED).create());
+         }
+diff --git a/proxy/src/main/resources/messages.properties b/proxy/src/main/resources/messages.properties
+index 76ad621f4..553bc70ed 100644
+--- a/proxy/src/main/resources/messages.properties
++++ b/proxy/src/main/resources/messages.properties
+@@ -15,12 +15,12 @@ no_server_permission=\u00a7cYou don''t have permission to access this server.
+ outdated_client=\u00a7cOutdated client! Please use {0}
+ outdated_server=\u00a7cOutdated server! I''m still on {0}
+ proxy_full=\u00a7cServer is full!
+-restart=\u00a7cThe proxy server is restarting
++restart=\u00a7cReboot du serveur
+ server_list=\u00a76You may connect to the following servers at this time: 
+-server_went_down=\u00a7cThe server you were previously on went down, you have been connected to a fallback server
++server_went_down=\u00a7cLe serveur principal reboot. Connection au serveur d''attente.
+ total_players=Total players online: {0}
+ name_invalid=\u00a7cUsername contains invalid characters.
+-ping_cannot_connect=\u00a7cCould not request status from target server.
++ping_cannot_connect=\u00a7cServeur actuellement hors-ligne
+ offline_mode_player=\u00a7cNot authenticated with Minecraft.net
+ secure_profile_required=\u00a7cA secure profile is required to join this server.
+ secure_profile_expired=\u00a7cSecure profile expired.
+-- 
+2.36.0.windows.1
+
