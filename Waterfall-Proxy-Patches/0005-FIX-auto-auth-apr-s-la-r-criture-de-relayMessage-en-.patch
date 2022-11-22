@@ -1,0 +1,75 @@
+From ab7bf5d3f0d3846afb974447e3e770a4c6f9018b Mon Sep 17 00:00:00 2001
+From: Remi <remi.riu95@gmail.com>
+Date: Wed, 9 Nov 2022 22:47:58 +0100
+Subject: [PATCH] =?UTF-8?q?FIX=20auto-auth=20apr=C3=A8s=20la=20r=C3=A9?=
+ =?UTF-8?q?=C3=A9criture=20de=20relayMessage=20en=201.19?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+
+diff --git a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
+index 9f7d94e6b..0fd2da2d3 100644
+--- a/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
++++ b/proxy/src/main/java/net/md_5/bungee/ServerConnector.java
+@@ -235,6 +235,13 @@ public class ServerConnector extends PacketHandler
+             ch.write( brandMessage );
+         }
+ 
++        PluginMessage hybridMessage = user.getPendingConnection().getHybridMessage();
++        if ( hybridMessage != null )
++        {
++            BungeeCord.getInstance().getLogger().info("writing pm " + hybridMessage.getTag());
++            ch.write( hybridMessage );
++        }
++
+         Set<String> registeredChannels = user.getPendingConnection().getRegisteredChannels();
+         if ( !registeredChannels.isEmpty() )
+         {
+diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
+index 047829ad4..856bd03a6 100644
+--- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
++++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
+@@ -94,6 +94,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+     @Getter
+     private PluginMessage brandMessage;
+     @Getter
++    private PluginMessage hybridMessage;
++    @Getter
+     private final Set<String> registeredChannels = new HashSet<>();
+     private State thisState = State.HANDSHAKE;
+     private final Unsafe unsafe = new Unsafe()
+@@ -683,13 +685,15 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+                             userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
+                             userCon.init();
+ 
+-                            if(isHybridMode()) {
++                            if (isHybridMode()) {
+                                 userCon.setOnlineId(onlineId);
+                                 hybridProfile.authenticate(userCon, getAddress());
+-
+-                                if(userCon.isAuthenticated()) {
+-                                    System.out.println("El famoso relayMessages");
+-                                    //relayMessages.add(userCon.getAuthenticatePluginMessage());
++                                if (userCon.isAuthenticated()) {
++                                    try {
++                                        InitialHandler.this.relayMessage(userCon.getAuthenticatePluginMessage());
++                                    } catch (Exception e) {
++                                        throw new RuntimeException(e);
++                                    }
+                                 }
+ 
+                                 userCon.setLateAuth(true);
+@@ -855,6 +859,9 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+         } else if ( input.getTag().equals( "MC|Brand" ) || input.getTag().equals( "minecraft:brand" ) )
+         {
+             brandMessage = input;
++        } else if ( input.getTag().equals( "bungeecord:hybrid" ) )
++        {
++            hybridMessage = input;
+         }
+     }
+ }
+-- 
+2.36.0.windows.1
+
