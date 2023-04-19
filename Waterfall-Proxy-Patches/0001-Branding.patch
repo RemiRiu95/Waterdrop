@@ -1,11 +1,11 @@
-From 17c7d4766d8d538a02c0ef84dd349abf3a5bc8ee Mon Sep 17 00:00:00 2001
+From b5dfd8079920baf4210f129976ee1ca90b98feb3 Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 02:56:06 +0200
 Subject: [PATCH] Branding
 
 
 diff --git a/api/pom.xml b/api/pom.xml
-index 5d21fd99..c8f8dcb3 100644
+index 92bd6c03..53e6846e 100644
 --- a/api/pom.xml
 +++ b/api/pom.xml
 @@ -4,42 +4,41 @@
@@ -64,7 +64,7 @@ index 5d21fd99..c8f8dcb3 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/bootstrap/pom.xml b/bootstrap/pom.xml
-index 688f1b99..5c276625 100644
+index f9ec2c1c..2e6bee3d 100644
 --- a/bootstrap/pom.xml
 +++ b/bootstrap/pom.xml
 @@ -4,19 +4,18 @@
@@ -112,7 +112,7 @@ index 688f1b99..5c276625 100644
              <plugin>
                  <groupId>org.apache.maven.plugins</groupId>
 diff --git a/chat/pom.xml b/chat/pom.xml
-index 1a8b097d..3cb9224a 100644
+index 003b3f6c..47b2dd91 100644
 --- a/chat/pom.xml
 +++ b/chat/pom.xml
 @@ -4,19 +4,18 @@
@@ -141,7 +141,7 @@ index 1a8b097d..3cb9224a 100644
      <dependencies>
          <dependency>
 diff --git a/config/pom.xml b/config/pom.xml
-index 7b83283b..86e3f9cc 100644
+index 91da386a..86266e8f 100644
 --- a/config/pom.xml
 +++ b/config/pom.xml
 @@ -4,19 +4,18 @@
@@ -446,7 +446,7 @@ index 8aff53bd..b198ee4a 100644
      <packaging>jar</packaging>
  
 diff --git a/native/pom.xml b/native/pom.xml
-index caa4c4cb..e8802b5d 100644
+index e137dfcc..31321636 100644
 --- a/native/pom.xml
 +++ b/native/pom.xml
 @@ -4,19 +4,18 @@
@@ -475,7 +475,7 @@ index caa4c4cb..e8802b5d 100644
      <dependencies>
          <dependency>
 diff --git a/pom.xml b/pom.xml
-index 8bb55d75..72bf09c3 100644
+index c7a036c3..c20de4c3 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -4,25 +4,20 @@
@@ -559,8 +559,8 @@ index 8bb55d75..72bf09c3 100644
 -
      <properties>
          <build.number>unknown</build.number>
-         <lombok.version>1.18.22</lombok.version>
-@@ -397,8 +359,8 @@
+         <lombok.version>1.18.26</lombok.version>
+@@ -407,8 +369,8 @@
                                  </goals>
                                  <inherited>false</inherited>
                                  <configuration>
@@ -572,7 +572,7 @@ index 8bb55d75..72bf09c3 100644
                                          api/target/generated-sources/delombok;
                                          chat/target/generated-sources/delombok
 diff --git a/protocol/pom.xml b/protocol/pom.xml
-index 93ae5952..3527c704 100644
+index 221469b9..9ebf15f3 100644
 --- a/protocol/pom.xml
 +++ b/protocol/pom.xml
 @@ -4,19 +4,18 @@
@@ -612,7 +612,7 @@ index 93ae5952..3527c704 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/proxy/pom.xml b/proxy/pom.xml
-index 1036a2e7..59e354d5 100644
+index 61172190..9f4cb8e1 100644
 --- a/proxy/pom.xml
 +++ b/proxy/pom.xml
 @@ -4,18 +4,17 @@
@@ -638,7 +638,7 @@ index 1036a2e7..59e354d5 100644
      <description>Proxy component of the Elastic Portal Suite</description>
  
      <properties>
-@@ -71,32 +70,32 @@
+@@ -64,32 +63,32 @@
              <scope>compile</scope>
          </dependency>
          <dependency>
@@ -682,10 +682,10 @@ index 1036a2e7..59e354d5 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-index 9ef2b77a..0ebec3cf 100644
+index d88c296a..7c20af67 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-@@ -536,7 +536,7 @@ public class BungeeCord extends ProxyServer
+@@ -545,7 +545,7 @@ public class BungeeCord extends ProxyServer
      @Override
      public String getName()
      {
@@ -737,7 +737,7 @@ index 5bb86152..ef37f784 100644
      }
  }
 diff --git a/query/pom.xml b/query/pom.xml
-index 72eb14e2..b9b79b60 100644
+index 81af5457..8ce5676b 100644
 --- a/query/pom.xml
 +++ b/query/pom.xml
 @@ -4,19 +4,18 @@
@@ -765,7 +765,7 @@ index 72eb14e2..b9b79b60 100644
  
      <dependencies>
          <dependency>
-@@ -26,8 +25,8 @@
+@@ -25,8 +24,8 @@
              <scope>compile</scope>
          </dependency>
          <dependency>
@@ -777,5 +777,5 @@ index 72eb14e2..b9b79b60 100644
              <scope>compile</scope>
          </dependency>
 -- 
-2.36.0.windows.1
+2.40.0.windows.1
 
