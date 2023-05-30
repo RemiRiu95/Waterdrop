@@ -1,0 +1,80 @@
+From 3b21d099d0f69e579f989f854086618cd5b06629 Mon Sep 17 00:00:00 2001
+From: Remi <remi.riu95@gmail.com>
+Date: Tue, 30 May 2023 11:04:08 +0200
+Subject: [PATCH] Debug messages qui serviront toujours
+
+
+diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+index d85cb930..0bbd3bef 100644
+--- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
++++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+@@ -170,6 +170,9 @@ public final class UserConnection implements ProxiedPlayer
+     private boolean lateAuth;
+ 
+     public void setAuthenticated(boolean authenticated) {
++        System.out.println("AI User - SetAuth " + authenticated);
++        System.out.println(this.authenticated);
++        System.out.println(lateAuth);
+         if(!this.authenticated && authenticated && lateAuth) {
+             server.unsafe().sendPacket(getAuthenticatePluginMessage());
+             try {
+diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
+index 9a6d0548..8d92f647 100644
+--- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
++++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
+@@ -467,6 +467,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+         // TODO HYBRID check this is ok
+         if ( !isOnlineMode() && bungee.getPlayer( getUniqueId() ) != null )
+         {
++            System.out.println("AI - Dissconnect Alreay connected");
+             disconnect( bungee.getTranslation( "already_connected_proxy" ) );
+             return;
+         }
+@@ -510,6 +511,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+                     hybridProfile = hybridEngine.getOfflinePlayerProfile(getName());
+                     hybridProfile.setInvalidSessionWorkaround(invalidSessionWorkaround);
+ 
++                    System.out.println("Bouh");
+                     hybridEngine.getLogger().info("Player " + getName() + " is offline");
+                     hybridEngine.getLogger().info("UUID of player " + getName() + " is " + hybridProfile.getId());
+ 
+@@ -697,14 +699,20 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+                             userCon.init();
+ 
+                             if (isHybridMode()) {
++                                System.out.println("AI - hybrid mode");
+                                 userCon.setOnlineId(onlineId);
++                                System.out.println("AI " + onlineId);
+                                 hybridProfile.authenticate(userCon, getAddress());
++
+                                 if (userCon.isAuthenticated()) {
++                                    System.out.println("AI user is authenticated");
+                                     try {
+                                         InitialHandler.this.relayMessage(userCon.getAuthenticatePluginMessage());
+                                     } catch (Exception e) {
+                                         throw new RuntimeException(e);
+                                     }
++                                } else {
++                                    System.out.println("AI user is not authenticated");
+                                 }
+ 
+                                 userCon.setLateAuth(true);
+@@ -847,6 +855,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+ 
+     public void relayMessage(PluginMessage input) throws Exception
+     {
++        System.out.println("Relaying message " + input);
+         if ( input.getTag().equals( "REGISTER" ) || input.getTag().equals( "minecraft:register" ) )
+         {
+             String content = new String( input.getData(), StandardCharsets.UTF_8 );
+@@ -873,6 +882,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+         } else if ( input.getTag().equals( "bungeecord:hybrid" ) )
+         {
+             hybridMessage = input;
++            System.out.println("HybridMsg : " + input);
+         }
+     }
+ }
+-- 
+2.40.1.windows.1
+
