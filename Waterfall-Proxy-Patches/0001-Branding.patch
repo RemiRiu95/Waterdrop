@@ -1,11 +1,11 @@
-From b5dfd8079920baf4210f129976ee1ca90b98feb3 Mon Sep 17 00:00:00 2001
+From ffa4966a909b54ea086f1e555b13c7d27faa541f Mon Sep 17 00:00:00 2001
 From: Indhi Rousseau <contact@thekinrar.fr>
 Date: Thu, 23 Apr 2020 02:56:06 +0200
 Subject: [PATCH] Branding
 
 
 diff --git a/api/pom.xml b/api/pom.xml
-index 92bd6c03..53e6846e 100644
+index ca4db06f..dcd0320e 100644
 --- a/api/pom.xml
 +++ b/api/pom.xml
 @@ -4,42 +4,41 @@
@@ -475,7 +475,7 @@ index e137dfcc..31321636 100644
      <dependencies>
          <dependency>
 diff --git a/pom.xml b/pom.xml
-index c7a036c3..c20de4c3 100644
+index 77991d81..060a932b 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -4,25 +4,20 @@
@@ -559,8 +559,8 @@ index c7a036c3..c20de4c3 100644
 -
      <properties>
          <build.number>unknown</build.number>
-         <lombok.version>1.18.26</lombok.version>
-@@ -407,8 +369,8 @@
+         <lombok.version>1.18.28</lombok.version>
+@@ -432,8 +394,8 @@
                                  </goals>
                                  <inherited>false</inherited>
                                  <configuration>
@@ -612,7 +612,7 @@ index 221469b9..9ebf15f3 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/proxy/pom.xml b/proxy/pom.xml
-index 61172190..9f4cb8e1 100644
+index aa360e69..4e341aa4 100644
 --- a/proxy/pom.xml
 +++ b/proxy/pom.xml
 @@ -4,18 +4,17 @@
@@ -682,7 +682,7 @@ index 61172190..9f4cb8e1 100644
              <scope>compile</scope>
          </dependency>
 diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
-index d88c296a..7c20af67 100644
+index 96d4ed22..00aab8d4 100644
 --- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 +++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
 @@ -545,7 +545,7 @@ public class BungeeCord extends ProxyServer
@@ -777,5 +777,5 @@ index 81af5457..8ce5676b 100644
              <scope>compile</scope>
          </dependency>
 -- 
-2.40.0.windows.1
+2.40.1.windows.1
 

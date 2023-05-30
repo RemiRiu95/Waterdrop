@@ -1,0 +1,74 @@
+From ff6bb73783b341c5ca9d1202bd542f16340d9b48 Mon Sep 17 00:00:00 2001
+From: Remi <remi.riu95@gmail.com>
+Date: Tue, 30 May 2023 00:00:49 +0200
+Subject: [PATCH] Diverses tentatives de fix pour avancer (versions
+ dependencies, souci getPlayer(String name))
+
+
+diff --git a/api/pom.xml b/api/pom.xml
+index dcd0320e..278cdbe1 100644
+--- a/api/pom.xml
++++ b/api/pom.xml
+@@ -78,7 +78,7 @@
+         <dependency>
+             <groupId>org.slf4j</groupId>
+             <artifactId>slf4j-api</artifactId>
+-            <version>1.7.25</version>
++            <version>1.7.36</version>
+         </dependency>
+     </dependencies>
+ </project>
+diff --git a/pom.xml b/pom.xml
+index 060a932b..83c66d7e 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -65,6 +65,30 @@
+                 <type>pom</type>
+                 <scope>import</scope>
+             </dependency>
++
++            <dependency>
++                <groupId>org.slf4j</groupId>
++                <artifactId>slf4j-api</artifactId>
++                <version>1.7.36</version>
++            </dependency>
++
++            <dependency>
++                <groupId>commons-codec</groupId>
++                <artifactId>commons-codec</artifactId>
++                <version>1.14</version>
++            </dependency>
++
++            <dependency>
++                <groupId>org.jline</groupId>
++                <artifactId>jline-terminal</artifactId>
++                <version>3.21.0</version>
++            </dependency>
++
++            <dependency>
++                <groupId>org.apache.logging.log4j</groupId>
++                <artifactId>log4j-core</artifactId>
++                <version>2.17.2</version>
++            </dependency>
+         </dependencies>
+     </dependencyManagement>
+     <dependencies>
+diff --git a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
+index 7341f413..32c82e51 100644
+--- a/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
++++ b/proxy/src/main/java/net/md_5/bungee/BungeeCord.java
+@@ -654,9 +654,9 @@ public class BungeeCord extends ProxyServer
+     public ProxiedPlayer getPlayer(String name)
+     {
+         // Waterfall start - Skip lock if we get a v4 UUID, we're not gonna be in here
+-        if (name != null && name.version() == 4) {
++        /*if (name != null && name.version() == 4) {
+             return null;
+-        }
++        }*/
+         // Waterfall end
+         connectionLock.readLock().lock();
+         try
+-- 
+2.40.1.windows.1
+

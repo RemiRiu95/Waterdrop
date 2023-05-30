@@ -1,4 +1,4 @@
-From bd41c49a2756eab2a2275f7e03f7d9d57c07ff90 Mon Sep 17 00:00:00 2001
+From be99445626d6c536f2a0d4ad96c4ce5c5b6139d4 Mon Sep 17 00:00:00 2001
 From: Remi <remi.riu95@gmail.com>
 Date: Wed, 9 Nov 2022 22:47:58 +0100
 Subject: [PATCH] =?UTF-8?q?FIX=20auto-auth=20apr=C3=A8s=20la=20r=C3=A9?=
@@ -27,7 +27,7 @@ index 9f7d94e6..0fd2da2d 100644
          if ( !registeredChannels.isEmpty() )
          {
 diff --git a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
-index 0005e90d..cfedd4e5 100644
+index 2fb3bc53..9a6d0548 100644
 --- a/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 +++ b/proxy/src/main/java/net/md_5/bungee/connection/InitialHandler.java
 @@ -94,6 +94,8 @@ public class InitialHandler extends PacketHandler implements PendingConnection
@@ -39,7 +39,7 @@ index 0005e90d..cfedd4e5 100644
      private final Set<String> registeredChannels = new HashSet<>();
      private State thisState = State.HANDSHAKE;
      private final Unsafe unsafe = new Unsafe()
-@@ -684,13 +686,15 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -694,13 +696,15 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                              userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
                              userCon.init();
  
@@ -60,7 +60,7 @@ index 0005e90d..cfedd4e5 100644
                                  }
  
                                  userCon.setLateAuth(true);
-@@ -856,6 +860,9 @@ public class InitialHandler extends PacketHandler implements PendingConnection
+@@ -866,6 +870,9 @@ public class InitialHandler extends PacketHandler implements PendingConnection
          } else if ( input.getTag().equals( "MC|Brand" ) || input.getTag().equals( "minecraft:brand" ) )
          {
              brandMessage = input;
@@ -71,5 +71,5 @@ index 0005e90d..cfedd4e5 100644
      }
  }
 -- 
-2.40.0.windows.1
+2.40.1.windows.1
 
