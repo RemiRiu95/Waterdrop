@@ -1,0 +1,31 @@
+From 367e0361bd5688228e0158b6794949b868a40796 Mon Sep 17 00:00:00 2001
+From: Remi <remi.riu95@gmail.com>
+Date: Tue, 30 May 2023 11:03:42 +0200
+Subject: [PATCH] =?UTF-8?q?FIX=20auto-auth=20crack=20lors=20d'un=20changem?=
+ =?UTF-8?q?ent=20de=20serveur=20(oubli=20r=C3=A9=C3=A9criture=20relayMessa?=
+ =?UTF-8?q?ge)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+
+diff --git a/proxy/src/main/java/net/md_5/bungee/UserConnection.java b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+index d7cca802..d85cb930 100644
+--- a/proxy/src/main/java/net/md_5/bungee/UserConnection.java
++++ b/proxy/src/main/java/net/md_5/bungee/UserConnection.java
+@@ -172,7 +172,11 @@ public final class UserConnection implements ProxiedPlayer
+     public void setAuthenticated(boolean authenticated) {
+         if(!this.authenticated && authenticated && lateAuth) {
+             server.unsafe().sendPacket(getAuthenticatePluginMessage());
+-            // pendingConnection.getRelayMessages().add(getAuthenticatePluginMessage());
++            try {
++                this.getPendingConnection().relayMessage(getAuthenticatePluginMessage());
++            } catch (Exception e) {
++                throw new RuntimeException(e);
++            }
+         }
+ 
+         this.authenticated = authenticated;
+-- 
+2.40.1.windows.1
+
